@@ -53,13 +53,18 @@ export interface Transaction {
 	updated_at: string
 }
 
+export type IncomeFrequency = 'weekly' | 'bi-weekly' | 'semi-monthly' | 'monthly' | 'custom'
+
 export interface IncomeSource {
 	id: string
 	user_id: string
 	name: string
 	amount: number
-	frequency: 'weekly' | 'bi-weekly' | 'semi-monthly' | 'monthly' | 'custom'
+	frequency: IncomeFrequency
+	custom_frequency_days?: number
 	is_active: boolean
+	description?: string
+	next_expected_date?: string
 	created_at: string
 	updated_at: string
 }

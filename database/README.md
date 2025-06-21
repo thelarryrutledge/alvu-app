@@ -34,7 +34,8 @@ psql "your-database-url" -f database/migrations/001_create_users_table.sql
 Migrations must be applied in numerical order:
 
 1. `001_create_users_table.sql` - Base users table
-2. Future migrations will be numbered sequentially
+2. `002_create_income_sources_table.sql` - Income sources with frequency enum
+3. Future migrations will be numbered sequentially
 
 ## Database Schema Overview
 
@@ -54,6 +55,21 @@ The `users` table extends Supabase Auth with additional profile information:
 - **created_at**: Timestamp of profile creation
 - **updated_at**: Timestamp of last profile update
 
+### Income Sources Table
+
+The `income_sources` table manages multiple income streams for users:
+
+- **id**: UUID primary key
+- **user_id**: References users table
+- **name**: Income source name (e.g., "Main Job", "Freelance")
+- **amount**: Income amount (decimal with 2 decimal places)
+- **frequency**: Enum (weekly, bi-weekly, semi-monthly, monthly, custom)
+- **custom_frequency_days**: Days for custom frequency (required when frequency = 'custom')
+- **is_active**: Whether the income source is currently active
+- **description**: Optional description
+- **next_expected_date**: Automatically calculated next income date
+- **created_at/updated_at**: Timestamps
+
 ### Row Level Security (RLS)
 
 All tables implement Row Level Security policies:
@@ -66,6 +82,8 @@ All tables implement Row Level Security policies:
 
 - `handle_new_user()`: Automatically creates user profile on signup
 - `update_updated_at_column()`: Automatically updates the updated_at timestamp
+- `calculate_next_income_date()`: Calculates next expected income date based on frequency
+- `set_next_income_date()`: Automatically sets next_expected_date on insert/update
 
 ## Testing Migrations
 
