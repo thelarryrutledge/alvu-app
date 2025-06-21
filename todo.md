@@ -11,7 +11,7 @@
 - [x] Set up basic project structure and folders
 - [x] Initialize Git repository and create initial commit
 - [x] Configure ESLint and Prettier for code quality
-- [ ] Create basic README with setup instructions
+- [x] Create basic README with setup instructions
 
 ## Task 2: Database Schema & Supabase Configuration
 
