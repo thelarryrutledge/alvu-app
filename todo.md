@@ -22,13 +22,13 @@
 - [x] Create transactions table with type enum (income, expense, transfer, allocation)
 - [x] Create allocations table for income distribution
 - [x] Create payees table for saved payee information
-- [ ] Set up Row Level Security (RLS) policies for all tables
-- [ ] Create database functions for common operations
-- [ ] Test database schema with sample data
+- [x] Set up Row Level Security (RLS) policies for all tables
+- [x] Create database functions for common operations
+- [x] Test database schema with sample data
 
 ## Task 3: Authentication System
 
-- [ ] Set up Supabase Auth configuration
+- [x] Set up Supabase Auth configuration
 - [ ] Create login page with email/password
 - [ ] Create registration page with validation
 - [ ] Implement password reset functionality
