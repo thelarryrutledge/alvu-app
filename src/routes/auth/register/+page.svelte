@@ -145,8 +145,20 @@
 				formErrors.general = result.error || 'Registration failed. Please try again.'
 			}
 		} catch (err) {
-			formErrors.general = 'An unexpected error occurred. Please try again.'
 			console.error('Registration error:', err)
+			
+			// Provide more specific error messages
+			if (err instanceof Error) {
+				if (err.message.includes('credentials')) {
+					formErrors.general = 'Configuration error: Please check your Supabase settings.'
+				} else if (err.message.includes('fetch')) {
+					formErrors.general = 'Network error: Please check your internet connection and try again.'
+				} else {
+					formErrors.general = `Error: ${err.message}`
+				}
+			} else {
+				formErrors.general = 'An unexpected error occurred. Please try again.'
+			}
 		} finally {
 			isSubmitting = false
 		}
