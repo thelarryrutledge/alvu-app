@@ -9,6 +9,8 @@ This directory contains SQL migration files for the Alvu PWA database schema.
 - `003_create_categories_table.sql` - Creates categories table with default categories
 - `004_create_envelopes_table.sql` - Creates envelopes table with type enum (regular, savings, debt)
 - `005_create_transactions_table.sql` - Creates transactions table with type enum (income, expense, transfer, allocation)
+- `006_create_allocations_table.sql` - Creates allocations table for income distribution rules
+- `007_create_payees_table.sql` - Creates payees table for saved payee information
 
 ## How to Apply Migrations
 
@@ -42,7 +44,9 @@ Migrations must be applied in numerical order:
 3. `003_create_categories_table.sql` - Categories with default categories
 4. `004_create_envelopes_table.sql` - Envelopes with type enum (regular, savings, debt)
 5. `005_create_transactions_table.sql` - Transactions with type enum (income, expense, transfer, allocation)
-6. Future migrations will be numbered sequentially
+6. `006_create_allocations_table.sql` - Allocations for income distribution rules
+7. `007_create_payees_table.sql` - Payees for saved payee information
+8. Future migrations will be numbered sequentially
 
 ## Database Schema Overview
 
@@ -157,6 +161,53 @@ The `transactions` table manages all financial transactions with four distinct t
 - **Transfer transactions**: Must have both source_envelope_id and destination_envelope_id (different)
 - **Allocation transactions**: Must have envelope_id, no other references
 
+### Allocations Table
+
+The `allocations` table manages allocation rules for distributing income to envelopes:
+
+- **id**: UUID primary key
+- **user_id**: References users table
+- **envelope_id**: References envelopes table (destination for allocation)
+- **income_source_id**: Optional reference to specific income source
+- **amount**: Fixed allocation amount (for non-percentage allocations)
+- **percentage**: Percentage of income to allocate (for percentage allocations)
+- **is_percentage**: Whether this allocation uses percentage or fixed amount
+- **is_automatic**: Whether allocation should be processed automatically
+- **priority**: Priority order for automatic allocations (higher = first)
+- **description**: Optional description for the allocation rule
+- **created_at/updated_at**: Timestamps
+
+#### Allocation Types
+
+1. **Fixed Amount** - Allocate a specific dollar amount to envelope
+2. **Percentage** - Allocate a percentage of income to envelope
+3. **Automatic** - Process allocation automatically when income is received
+4. **Manual** - Require user confirmation before processing
+
+### Payees Table
+
+The `payees` table manages saved payee information for quick expense entry:
+
+- **id**: UUID primary key
+- **user_id**: References users table
+- **name**: Payee name (unique per user)
+- **category**: Optional category for grouping payees
+- **default_envelope_id**: Optional default envelope for expenses to this payee
+- **default_amount**: Optional default amount for expenses to this payee
+- **notes**: Optional notes about the payee
+- **is_favorite**: Whether payee is marked as favorite
+- **last_used_at**: Timestamp of last use
+- **usage_count**: Number of times payee has been used
+- **created_at/updated_at**: Timestamps
+
+#### Payee Features
+
+1. **Auto-completion** - Suggest payees based on partial name matches
+2. **Usage tracking** - Track frequency and recency of payee usage
+3. **Smart defaults** - Remember default envelope and amount for each payee
+4. **Categories** - Group payees by category for better organization
+5. **Favorites** - Mark frequently used payees as favorites
+
 ### Row Level Security (RLS)
 
 All tables implement Row Level Security policies:
@@ -184,6 +235,16 @@ All tables implement Row Level Security policies:
 - `process_transfer_transaction()`: Processes transfers between envelopes with balance updates
 - `process_allocation_transaction()`: Processes allocation from available funds to envelopes
 - `get_transaction_summary()`: Returns transaction summary by type with date filtering
+- `calculate_allocation_amount()`: Calculates allocation amount based on percentage or fixed amount
+- `get_allocation_rules()`: Returns allocation rules for a user or specific income source
+- `process_automatic_allocations()`: Processes automatic allocations when income is received
+- `validate_allocation_percentages()`: Validates that allocation percentages don't exceed 100%
+- `get_or_create_payee()`: Gets existing payee or creates new one with usage tracking
+- `get_payee_suggestions()`: Returns payee suggestions based on search term and usage
+- `get_payees_by_category()`: Returns payees grouped by category
+- `update_payee_usage()`: Updates payee usage statistics
+- `merge_payees()`: Merges two payees and updates transaction references
+- `cleanup_unused_payees()`: Removes unused payees older than specified days
 
 ## Testing Migrations
 

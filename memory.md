@@ -191,6 +191,24 @@ The project foundation is now complete and ready for Task 2: Database Schema & S
   - Transfer transactions: Reference source and destination envelopes, move funds between them
   - Allocation transactions: Reference envelopes, allocate from available funds to envelope
   - Migration successfully applied and tested in database
+- ✅ Allocations table created with comprehensive income distribution system
+  - Created SQL migration with allocations table for automatic and manual income distribution
+  - Implemented percentage-based and fixed-amount allocation rules with priority ordering
+  - Added comprehensive allocation processing functions with automatic allocation support
+  - Enhanced TypeScript types with Allocation interface
+  - Created thorough test framework validating all constraints and functions
+  - Includes allocation rule management, percentage validation, and automatic processing
+  - Supports both income-source-specific and global allocation rules
+  - Migration successfully applied and tested in database
+- ✅ Payees table created with comprehensive payee management system
+  - Created SQL migration with payees table for saved payee information and smart defaults
+  - Implemented usage tracking, favorites, categories, and auto-completion features
+  - Added comprehensive payee management functions with merge and cleanup capabilities
+  - Enhanced TypeScript types with Payee interface
+  - Created thorough test framework validating all constraints and functions
+  - Includes payee suggestions, category grouping, and usage statistics
+  - Supports smart defaults for envelope and amount based on payee history
+  - Migration successfully applied and tested in database
 
 ## Critical Implementation Notes
 

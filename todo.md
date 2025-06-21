@@ -20,8 +20,8 @@
 - [x] Create categories table with default categories
 - [x] Create envelopes table with type enum (regular, savings, debt)
 - [x] Create transactions table with type enum (income, expense, transfer, allocation)
-- [ ] Create allocations table for income distribution
-- [ ] Create payees table for saved payee information
+- [x] Create allocations table for income distribution
+- [x] Create payees table for saved payee information
 - [ ] Set up Row Level Security (RLS) policies for all tables
 - [ ] Create database functions for common operations
 - [ ] Test database schema with sample data

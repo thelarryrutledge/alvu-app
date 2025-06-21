@@ -79,6 +79,36 @@ export interface IncomeSource {
 	updated_at: string
 }
 
+export interface Allocation {
+	id: string
+	user_id: string
+	envelope_id: string
+	income_source_id?: string
+	amount: number
+	percentage?: number
+	is_percentage: boolean
+	is_automatic: boolean
+	priority: number
+	description?: string
+	created_at: string
+	updated_at: string
+}
+
+export interface Payee {
+	id: string
+	user_id: string
+	name: string
+	category?: string
+	default_envelope_id?: string
+	default_amount?: number
+	notes?: string
+	is_favorite: boolean
+	last_used_at?: string
+	usage_count: number
+	created_at: string
+	updated_at: string
+}
+
 // Database response types
 export type DatabaseResponse<T> = {
 	data: T | null
