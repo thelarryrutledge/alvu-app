@@ -18,6 +18,8 @@
 	
 	// Mobile menu state
 	let mobileMenuOpen = false
+	// Desktop sidebar state
+	let sidebarCollapsed = false
 	
 	// Handle logout
 	async function handleLogout() {
@@ -27,6 +29,11 @@
 	// Toggle mobile menu
 	function toggleMobileMenu() {
 		mobileMenuOpen = !mobileMenuOpen
+	}
+	
+	// Toggle desktop sidebar
+	function toggleSidebar() {
+		sidebarCollapsed = !sidebarCollapsed
 	}
 	
 	// Close mobile menu when clicking outside or navigating
@@ -58,146 +65,189 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
-	<!-- Header -->
-	<header class="bg-white shadow-sm border-b border-gray-200">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-			<div class="flex justify-between items-center h-16">
-				<!-- Logo and Title -->
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<h1 class="text-xl font-bold text-blue-600">Alvu</h1>
-					</div>
-					
-					<!-- Desktop Navigation -->
-					{#if showNavigation}
-						<nav class="hidden md:ml-8 md:flex md:space-x-8">
-							{#each navigationItems as item}
-								<a
-									href={item.href}
-									class="inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-200 {isActiveRoute(item.href)
-										? 'text-blue-600 border-b-2 border-blue-600'
-										: 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'}"
-								>
-									<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										{@html getIcon(item.icon)}
-									</svg>
-									{item.name}
-								</a>
-							{/each}
-						</nav>
-					{/if}
+	{#if showNavigation}
+		<!-- Desktop Sidebar -->
+		<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+			<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 shadow-xl">
+				<!-- Logo -->
+				<div class="flex h-16 shrink-0 items-center">
+					<h1 class="text-2xl font-bold text-blue-600">Alvu</h1>
 				</div>
-
-				<!-- User Menu and Mobile Menu Button -->
-				<div class="flex items-center space-x-4">
-					<!-- User Info -->
-					{#if $user}
-						<div class="hidden sm:flex sm:items-center sm:space-x-4">
-							<span class="text-sm text-gray-700">
-								{$user.user_metadata?.first_name || $user.email}
-							</span>
-							<a
-								href="/profile"
-								class="text-gray-400 hover:text-gray-500 transition-colors duration-200"
-								title="Profile"
-							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-								</svg>
-							</a>
-							<button
-								on:click={handleLogout}
-								class="text-gray-400 hover:text-gray-500 transition-colors duration-200"
-								title="Sign Out"
-							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-								</svg>
-							</button>
-						</div>
-					{/if}
-
-					<!-- Mobile menu button -->
-					{#if showNavigation}
-						<button
-							on:click={toggleMobileMenu}
-							class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-200"
-							aria-expanded={mobileMenuOpen}
-						>
-							<span class="sr-only">Open main menu</span>
-							{#if mobileMenuOpen}
-								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-								</svg>
-							{:else}
-								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-								</svg>
-							{/if}
-						</button>
-					{/if}
-				</div>
+				
+				<!-- Navigation -->
+				<nav class="flex flex-1 flex-col">
+					<ul role="list" class="flex flex-1 flex-col gap-y-7">
+						<li>
+							<ul role="list" class="-mx-2 space-y-1">
+								{#each navigationItems as item}
+									<li>
+										<a
+											href={item.href}
+											class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors duration-200 {isActiveRoute(item.href)
+												? 'bg-blue-50 text-blue-600'
+												: 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'}"
+										>
+											<svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												{@html getIcon(item.icon)}
+											</svg>
+											{item.name}
+										</a>
+									</li>
+								{/each}
+							</ul>
+						</li>
+						
+						<!-- User Section -->
+						{#if $user}
+							<li class="mt-auto">
+								<div class="border-t border-gray-200 pt-4">
+									<div class="flex items-center gap-x-4 px-2 py-3 text-sm font-semibold leading-6 text-gray-900">
+										<div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+											<span class="text-sm font-medium text-white">
+												{($user.user_metadata?.first_name || $user.email || 'U').charAt(0).toUpperCase()}
+											</span>
+										</div>
+										<span class="sr-only">Your profile</span>
+										<span aria-hidden="true">{$user.user_metadata?.first_name || $user.email}</span>
+									</div>
+									<div class="space-y-1">
+										<a
+											href="/profile"
+											class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+										>
+											<svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+											</svg>
+											Profile
+										</a>
+										<button
+											on:click={handleLogout}
+											class="group flex w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors duration-200"
+										>
+											<svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+											</svg>
+											Sign Out
+										</button>
+									</div>
+								</div>
+							</li>
+						{/if}
+					</ul>
+				</nav>
 			</div>
 		</div>
 
-		<!-- Mobile Navigation Menu -->
-		{#if showNavigation && mobileMenuOpen}
-			<div class="md:hidden">
-				<div class="pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
-					{#each navigationItems as item}
-						<a
-							href={item.href}
-							on:click={closeMobileMenu}
-							class="flex items-center px-4 py-2 text-base font-medium transition-colors duration-200 {isActiveRoute(item.href)
-								? 'text-blue-600 bg-blue-50 border-r-4 border-blue-600'
-								: 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}"
-						>
-							<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								{@html getIcon(item.icon)}
-							</svg>
-							{item.name}
-						</a>
-					{/each}
-					
-					<!-- Mobile User Actions -->
-					{#if $user}
-						<div class="border-t border-gray-200 pt-4 pb-3">
-							<div class="px-4 mb-3">
-								<div class="text-base font-medium text-gray-800">
-									{$user.user_metadata?.first_name || 'User'}
-								</div>
-								<div class="text-sm text-gray-500">{$user.email}</div>
-							</div>
-							<div class="space-y-1">
-								<a
-									href="/profile"
-									on:click={closeMobileMenu}
-									class="flex items-center px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
-								>
-									<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-									</svg>
-									Profile
-								</a>
-								<button
-									on:click={() => { closeMobileMenu(); handleLogout(); }}
-									class="flex items-center w-full px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
-								>
-									<svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-									</svg>
-									Sign Out
-								</button>
-							</div>
+		<!-- Mobile Header -->
+		<div class="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+			<button
+				type="button"
+				on:click={toggleMobileMenu}
+				class="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+			>
+				<span class="sr-only">Open sidebar</span>
+				<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+				</svg>
+			</button>
+			<div class="flex-1 text-sm font-semibold leading-6 text-gray-900">
+				<h1 class="text-xl font-bold text-blue-600">Alvu</h1>
+			</div>
+			{#if $user}
+				<div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+					<span class="text-sm font-medium text-white">
+						{($user.user_metadata?.first_name || $user.email || 'U').charAt(0).toUpperCase()}
+					</span>
+				</div>
+			{/if}
+		</div>
+
+		<!-- Mobile Sidebar -->
+		{#if mobileMenuOpen}
+			<div class="relative z-50 lg:hidden" role="dialog" aria-modal="true">
+				<div class="fixed inset-0 bg-gray-900/80" on:click={closeMobileMenu} on:keydown={(e) => e.key === 'Escape' && closeMobileMenu()} role="button" tabindex="0" aria-label="Close menu"></div>
+				<div class="fixed inset-0 flex">
+					<div class="relative mr-16 flex w-full max-w-xs flex-1">
+						<div class="absolute left-full top-0 flex w-16 justify-center pt-5">
+							<button type="button" on:click={closeMobileMenu} class="-m-2.5 p-2.5">
+								<span class="sr-only">Close sidebar</span>
+								<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
 						</div>
-					{/if}
+						<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
+							<div class="flex h-16 shrink-0 items-center">
+								<h1 class="text-2xl font-bold text-blue-600">Alvu</h1>
+							</div>
+							<nav class="flex flex-1 flex-col">
+								<ul role="list" class="flex flex-1 flex-col gap-y-7">
+									<li>
+										<ul role="list" class="-mx-2 space-y-1">
+											{#each navigationItems as item}
+												<li>
+													<a
+														href={item.href}
+														on:click={closeMobileMenu}
+														class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors duration-200 {isActiveRoute(item.href)
+															? 'bg-blue-50 text-blue-600'
+															: 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'}"
+													>
+														<svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															{@html getIcon(item.icon)}
+														</svg>
+														{item.name}
+													</a>
+												</li>
+											{/each}
+										</ul>
+									</li>
+									{#if $user}
+										<li class="mt-auto">
+											<div class="border-t border-gray-200 pt-4">
+												<div class="flex items-center gap-x-4 px-2 py-3 text-sm font-semibold leading-6 text-gray-900">
+													<div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+														<span class="text-sm font-medium text-white">
+															{($user.user_metadata?.first_name || $user.email || 'U').charAt(0).toUpperCase()}
+														</span>
+													</div>
+													<span>{$user.user_metadata?.first_name || $user.email}</span>
+												</div>
+												<div class="space-y-1">
+													<a
+														href="/profile"
+														on:click={closeMobileMenu}
+														class="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200"
+													>
+														<svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+														</svg>
+														Profile
+													</a>
+													<button
+														on:click={() => { closeMobileMenu(); handleLogout(); }}
+														class="group flex w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors duration-200"
+													>
+														<svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+														</svg>
+														Sign Out
+													</button>
+												</div>
+											</div>
+										</li>
+									{/if}
+								</ul>
+							</nav>
+						</div>
+					</div>
 				</div>
 			</div>
 		{/if}
-	</header>
+	{/if}
 
 	<!-- Main Content -->
-	<main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+	<main class="{showNavigation ? 'lg:pl-72' : ''} py-6 px-4 sm:px-6 lg:px-8">
 		<slot />
 	</main>
 </div>

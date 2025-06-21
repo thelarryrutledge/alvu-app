@@ -42,8 +42,8 @@
 ## Task 4: Core UI Framework & Navigation
 
 - [x] Create main app layout component
-- [ ] Design and implement navigation bar
-- [ ] Create responsive sidebar for desktop
+- [x] Design and implement navigation bar
+- [x] Create responsive sidebar for desktop
 - [ ] Implement bottom navigation for mobile
 - [ ] Create dashboard layout structure
 - [ ] Add loading spinner components
