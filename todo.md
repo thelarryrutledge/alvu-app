@@ -1,6 +1,7 @@
 # Alvu PWA Budget App - Development Tasks
 
 ## Task 1: Project Foundation & Setup
+
 - [x] Initialize Svelte project with Vite
 - [x] Configure Tailwind CSS for responsive design
 - [x] Set up PWA configuration (manifest.json, service worker)
@@ -8,11 +9,12 @@
 - [x] Set up Supabase project and obtain API keys
 - [x] Create environment configuration files
 - [x] Set up basic project structure and folders
-- [ ] Initialize Git repository and create initial commit
-- [ ] Configure ESLint and Prettier for code quality
+- [x] Initialize Git repository and create initial commit
+- [x] Configure ESLint and Prettier for code quality
 - [ ] Create basic README with setup instructions
 
 ## Task 2: Database Schema & Supabase Configuration
+
 - [ ] Design and create users table with RLS policies
 - [ ] Create income_sources table with frequency enum
 - [ ] Create categories table with default categories
@@ -25,6 +27,7 @@
 - [ ] Test database schema with sample data
 
 ## Task 3: Authentication System
+
 - [ ] Set up Supabase Auth configuration
 - [ ] Create login page with email/password
 - [ ] Create registration page with validation
@@ -37,6 +40,7 @@
 - [ ] Test authentication flow end-to-end
 
 ## Task 4: Core UI Framework & Navigation
+
 - [ ] Create main app layout component
 - [ ] Design and implement navigation bar
 - [ ] Create responsive sidebar for desktop
@@ -49,6 +53,7 @@
 - [ ] Test responsive behavior across devices
 
 ## Task 5: Dashboard & Available Funds Display
+
 - [ ] Create dashboard page component
 - [ ] Implement prominent available funds display card
 - [ ] Create quick action buttons section (Add Income, Add Expense, Transfer, Allocate)
@@ -61,6 +66,7 @@
 - [ ] Test dashboard responsiveness and quick actions
 
 ## Task 6: Income Source Management
+
 - [ ] Create income sources list page
 - [ ] Implement add income source form
 - [ ] Create frequency selection dropdown
@@ -73,6 +79,7 @@
 - [ ] Test income source CRUD operations
 
 ## Task 7: Category Management System
+
 - [ ] Create categories list page
 - [ ] Implement default categories creation on user signup
 - [ ] Create add custom category form
@@ -85,6 +92,7 @@
 - [ ] Test category management operations
 
 ## Task 8: Envelope Management System
+
 - [ ] Create envelopes list page with category grouping
 - [ ] Implement add envelope form with type selection
 - [ ] Create regular envelope configuration
@@ -97,6 +105,7 @@
 - [ ] Test envelope CRUD operations
 
 ## Task 9: Transaction System - Income Processing
+
 - [ ] Create add income transaction form
 - [ ] Implement income source selection
 - [ ] Add transaction amount validation
@@ -109,6 +118,7 @@
 - [ ] Test income transaction flow
 
 ## Task 10: Dynamic Allocation Interface
+
 - [ ] Create allocation prompt modal after income entry
 - [ ] Implement dynamic allocation row system
 - [ ] Create envelope selection dropdown for allocations
@@ -121,6 +131,7 @@
 - [ ] Test complete allocation workflow
 
 ## Task 11: Expense Transaction System
+
 - [ ] Create add expense transaction form
 - [ ] Implement envelope selection for expenses
 - [ ] Create payee selection with autocomplete
@@ -133,6 +144,7 @@
 - [ ] Test expense transaction flow
 
 ## Task 12: Transfer System
+
 - [ ] Create transfer funds form
 - [ ] Implement source envelope selection
 - [ ] Create destination envelope selection
@@ -145,6 +157,7 @@
 - [ ] Test transfer system functionality
 
 ## Task 13: Savings Goal Tracking
+
 - [ ] Create savings goal progress calculation
 - [ ] Implement progress bar component
 - [ ] Add goal completion percentage display
@@ -157,6 +170,7 @@
 - [ ] Test savings goal tracking accuracy
 
 ## Task 14: Debt Management System
+
 - [ ] Create debt balance tracking
 - [ ] Implement APR calculations
 - [ ] Add minimum payment tracking
@@ -169,6 +183,7 @@
 - [ ] Test debt management calculations
 
 ## Task 15: Transaction History & Management
+
 - [ ] Create transaction history page
 - [ ] Implement transaction filtering by type
 - [ ] Add date range filtering
@@ -181,6 +196,7 @@
 - [ ] Test transaction history performance
 
 ## Task 16: PWA Optimization
+
 - [ ] Configure service worker for offline functionality
 - [ ] Implement app manifest with proper icons
 - [ ] Add install prompt functionality
@@ -193,6 +209,7 @@
 - [ ] Test PWA installation and offline functionality
 
 ## Task 17: Performance & Optimization
+
 - [ ] Implement lazy loading for routes
 - [ ] Optimize bundle size with code splitting
 - [ ] Add image optimization and compression
@@ -205,6 +222,7 @@
 - [ ] Test performance across devices
 
 ## Task 18: Testing & Quality Assurance
+
 - [ ] Set up unit testing framework
 - [ ] Create component unit tests
 - [ ] Implement integration tests for workflows
@@ -217,6 +235,7 @@
 - [ ] Run comprehensive test suite
 
 ## Task 19: Security & Data Protection
+
 - [ ] Implement input sanitization
 - [ ] Add CSRF protection
 - [ ] Create rate limiting for API calls
@@ -229,6 +248,7 @@
 - [ ] Conduct security audit
 
 ## Task 20: Production Deployment & Documentation
+
 - [ ] Configure production environment variables
 - [ ] Set up Vercel deployment pipeline
 - [ ] Configure custom domain and SSL
@@ -241,6 +261,7 @@
 - [ ] Conduct final production testing
 
 ## Future Enhancements (Post-MVP)
+
 - [ ] Implement automatic allocation rules and automation
 - [ ] Add recurring transaction scheduling
 - [ ] Create advanced reporting and analytics dashboard

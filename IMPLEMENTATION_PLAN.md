@@ -3,6 +3,7 @@
 ## Project Overview
 
 Alvu is a Progressive Web Application (PWA) envelope-based budget management system built with:
+
 - **Frontend**: Svelte + Tailwind CSS (responsive design)
 - **Backend**: Supabase (database, authentication, real-time features)
 - **Deployment**: Vercel
@@ -11,35 +12,40 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ## Core System Architecture
 
 ### MVP Focus: Manual Transaction Entry
+
 - All transactions will be manually entered by users
 - No bank account synchronization or automatic importing
 - Quick action dashboard buttons for efficient manual entry
 - Focus on streamlined user experience for manual data entry
 
-
 ### 1. Data Models
 
 #### Users
+
 - Authentication and profile management
 - User preferences and settings
 
 #### Income Sources
+
 - Multiple income streams per user
 - Configurable frequencies: weekly, bi-weekly, semi-monthly, monthly, custom
 - Support for regular payroll, freelance, and unexpected income
 
 #### Categories
+
 - **Default Categories**: Unassigned, Savings, Debt
 - **Custom Categories**: User-defined organizational groups
 - Hierarchical structure for envelope organization
 
 #### Envelopes
+
 - **Regular Envelopes**: Basic budget allocation containers
 - **Savings Envelopes**: Goal-oriented with target amounts, dates, and progress tracking
 - **Debt Envelopes**: Balance tracking with APR, minimum payments, due dates, and paydown progress
 - Category assignment (automatic for Savings/Debt types, manual for others)
 
 #### Transactions
+
 - **Income**: Adds to available funds bucket
 - **Expense**: Deducts from specific envelope to payee
 - **Transfer**: Moves funds between envelopes
@@ -48,6 +54,7 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ### 2. Core Workflows
 
 #### Income Processing
+
 1. User enters income transaction
 2. Funds added to "Available" bucket
 3. System prompts for allocation (can be skipped)
@@ -55,12 +62,14 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 5. Remaining funds stay in Available bucket
 
 #### Expense Processing
+
 1. User selects envelope and enters expense details
 2. System validates sufficient envelope balance
 3. Payee information saved for future use
 4. Funds deducted from envelope
 
 #### Envelope Management
+
 - **Savings Envelopes**: Progress tracking toward goals with visual indicators
 - **Debt Envelopes**: Reverse progress showing paydown with payment scheduling
 - **Transfer System**: Move funds between any envelopes
@@ -68,6 +77,7 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ### 3. User Interface Design
 
 #### Dashboard
+
 - Available funds display prominently
 - Envelope overview with balances and progress indicators
 - **Quick Action Buttons** for core functionality:
@@ -79,12 +89,14 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 - Savings goals and debt paydown progress indicators
 
 #### Responsive Design
+
 - Mobile-first approach using Tailwind CSS
 - PWA capabilities for home screen installation
 - Touch-friendly interface for mobile devices
 - Desktop optimization for larger screens
 
 #### Dynamic Allocation Interface
+
 - Real-time available balance updates
 - Dropdown envelope selection
 - Amount input with validation
@@ -94,24 +106,28 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ### 4. Technical Implementation Strategy
 
 #### Phase 1: Foundation
+
 - Project setup and configuration
 - Database schema design
 - Authentication system
 - Basic UI framework
 
 #### Phase 2: Core Features
+
 - Income source management
 - Category and envelope system
 - Basic transaction processing
 - Allocation interface
 
 #### Phase 3: Advanced Features
+
 - Savings goal tracking
 - Debt management with calculations
 - Enhanced UI/UX
 - PWA optimization
 
 #### Phase 4: Polish & Deployment
+
 - Testing and validation
 - Performance optimization
 - Production deployment
@@ -120,6 +136,7 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ### 5. Database Schema Overview
 
 #### Tables Structure
+
 - `users` - User authentication and profiles
 - `income_sources` - Income stream definitions
 - `categories` - Budget category organization
@@ -129,6 +146,7 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 - `payees` - Saved payee information
 
 #### Key Relationships
+
 - Users → Income Sources (1:many)
 - Users → Categories (1:many)
 - Categories → Envelopes (1:many)
@@ -139,11 +157,13 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ### 6. Security & Data Integrity
 
 #### Authentication
+
 - Supabase Auth for user management
 - Row Level Security (RLS) policies
 - Secure API endpoints
 
 #### Data Validation
+
 - Client-side and server-side validation
 - Balance verification before transactions
 - Input sanitization and type checking
@@ -151,17 +171,20 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 ### 7. Future Enhancements (Post-MVP)
 
 #### Automation Features
+
 - Automatic allocation rules based on percentages or fixed amounts
 - Recurring transaction scheduling
 - Smart allocation suggestions
 
 #### Reporting & Analytics
+
 - Transaction history and filtering
 - Spending pattern analysis
 - Budget vs. actual reporting
 - Data export capabilities (CSV/PDF)
 
 #### Advanced Features (Post-MVP)
+
 - Recurring transaction scheduling
 - Automatic allocation rules and automation
 - Shared budgets for families

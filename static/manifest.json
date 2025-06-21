@@ -1,46 +1,46 @@
 {
-  "name": "Alvu - Envelope Budget Manager",
-  "short_name": "Alvu",
-  "description": "Progressive Web App for envelope-based budget management",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#f3f4f6",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
-  "categories": ["finance", "productivity"],
-  "lang": "en-US",
-  "icons": [
-    {
-      "src": "/favicon.png",
-      "sizes": "any",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Add Income",
-      "short_name": "Income",
-      "description": "Quickly add income transaction",
-      "url": "/income/add",
-      "icons": [
-        {
-          "src": "/favicon.png",
-          "sizes": "48x48"
-        }
-      ]
-    },
-    {
-      "name": "Add Expense",
-      "short_name": "Expense",
-      "description": "Quickly add expense transaction",
-      "url": "/expense/add",
-      "icons": [
-        {
-          "src": "/favicon.png",
-          "sizes": "48x48"
-        }
-      ]
-    }
-  ]
+	"name": "Alvu - Envelope Budget Manager",
+	"short_name": "Alvu",
+	"description": "Progressive Web App for envelope-based budget management",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#f3f4f6",
+	"theme_color": "#3b82f6",
+	"orientation": "portrait-primary",
+	"categories": ["finance", "productivity"],
+	"lang": "en-US",
+	"icons": [
+		{
+			"src": "/favicon.png",
+			"sizes": "any",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Add Income",
+			"short_name": "Income",
+			"description": "Quickly add income transaction",
+			"url": "/income/add",
+			"icons": [
+				{
+					"src": "/favicon.png",
+					"sizes": "48x48"
+				}
+			]
+		},
+		{
+			"name": "Add Expense",
+			"short_name": "Expense",
+			"description": "Quickly add expense transaction",
+			"url": "/expense/add",
+			"icons": [
+				{
+					"src": "/favicon.png",
+					"sizes": "48x48"
+				}
+			]
+		}
+	]
 }

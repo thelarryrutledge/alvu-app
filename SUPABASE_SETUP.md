@@ -81,6 +81,7 @@ After completing the setup:
 ## Next Steps
 
 After completing this setup:
+
 1. Database schema creation (Task 2)
 2. Authentication configuration (Task 3)
 3. Supabase client integration in the app
@@ -88,12 +89,14 @@ After completing this setup:
 ## Troubleshooting
 
 **Common Issues:**
+
 - **Project not loading**: Wait a few more minutes for initialization
 - **API keys not working**: Ensure you copied the complete keys
 - **Connection errors**: Verify the project URL is correct
 - **Environment variables**: Check spelling and ensure no extra spaces
 
 **Support Resources:**
+
 - [Supabase Documentation](https://supabase.com/docs)
 - [Supabase Discord Community](https://discord.supabase.com)
 - [SvelteKit + Supabase Guide](https://supabase.com/docs/guides/getting-started/tutorials/with-sveltekit)

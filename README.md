@@ -3,6 +3,7 @@
 A Progressive Web Application for envelope-based budget management, built with SvelteKit and Tailwind CSS.
 
 ## Live Demo
+
 🚀 **[View Live App](https://alvu-app.vercel.app/)**
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).

@@ -1,9 +1,11 @@
 # Alvu PWA Budget App - Project Memory
 
 ## Project Overview
+
 Alvu is a Progressive Web Application for envelope-based budget management. The app enables users to manage multiple income sources, organize spending into categorized envelopes, and track financial goals through savings and debt management.
 
 ## Technology Stack
+
 - **Frontend**: Svelte with Vite build system
 - **Styling**: Tailwind CSS for responsive design
 - **Backend**: Supabase (PostgreSQL database, authentication, real-time features)
@@ -13,6 +15,7 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
 ## Core Architecture Decisions
 
 ### Data Model Structure
+
 - **Users**: Authentication and profile management via Supabase Auth
 - **Income Sources**: Multiple streams with configurable frequencies (weekly, bi-weekly, semi-monthly, monthly, custom)
 - **Categories**: Three default categories (Unassigned, Savings, Debt) plus user-defined custom categories
@@ -20,12 +23,14 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
 - **Transactions**: Four types - Income (adds to available funds), Expense (deducts from envelope), Transfer (moves between envelopes), Allocation (distributes from available to envelopes)
 
 ### Key Business Logic
+
 - **Income Processing**: Income transactions add to "Available" bucket, then user can allocate to envelopes via dynamic interface
 - **Envelope Assignment**: Savings envelopes auto-assign to Savings category, Debt envelopes to Debt category, others to Unassigned unless specified
 - **Manual Allocation**: Current implementation uses manual allocation interface; automation planned for future
 - **Balance Management**: Real-time balance updates across all components
 
 ### User Experience Design
+
 - **Mobile-First**: PWA optimized for mobile devices with home screen installation
 - **Responsive**: Tailwind CSS ensures functionality across all screen sizes
 - **Manual Entry Focus**: All transactions manually entered (no bank sync for MVP)
@@ -34,12 +39,14 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
 - **Progress Tracking**: Visual indicators for savings goals and debt paydown
 
 ## Development Approach
+
 - **Task-Based Development**: Single subtask implementation with testing and validation
 - **Incremental Building**: 20 major tasks broken into granular subtasks
 - **Quality Assurance**: Each task includes testing, documentation, and git commits
 - **Security Focus**: Row Level Security (RLS) policies, input validation, and data protection
 
 ## Current Status
+
 - Project initialized with comprehensive planning documents
 - Implementation Plan created with detailed system architecture
 - Todo list established with 200+ granular subtasks across 20 major tasks
@@ -102,8 +109,17 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
     - Set up authentication store in `src/lib/stores/auth.ts`
     - Created application constants in `src/lib/utils/constants.ts`
     - Ready for component development and database schema implementation
+  - ✅ ESLint and Prettier configuration for code quality
+    - Installed ESLint v9 with TypeScript and Svelte support
+    - Configured modern `eslint.config.js` with proper environment globals
+    - Set up Prettier with Svelte plugin for consistent code formatting
+    - Added npm scripts: `lint`, `lint:fix`, `format`, `format:check`
+    - Configured specific rules for service worker and test files
+    - Successfully formatted entire codebase with consistent style
+    - Ready for development with automated code quality checks
 
 ## Critical Implementation Notes
+
 - **Database Security**: All tables must implement Row Level Security (RLS) policies
 - **Real-Time Updates**: Leverage Supabase real-time features for balance updates
 - **PWA Requirements**: Must be installable on mobile devices and work offline
@@ -111,6 +127,7 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
 - **Financial Data Integrity**: All monetary calculations must be precise and validated
 
 ## Future Considerations (Post-MVP)
+
 - **Automation System**: Automatic allocation rules based on percentages or fixed amounts
 - **Recurring Transactions**: Scheduled recurring income and expenses
 - **Advanced Features**: Bank API integration, shared budgets
@@ -119,11 +136,13 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
 - **Performance**: Virtual scrolling for large transaction lists, efficient state management
 
 ## MVP Constraints
+
 - **Manual Entry Only**: No bank account synchronization or automatic transaction importing
 - **No Multi-Currency**: Single currency support for initial release
 - **Basic Reporting**: Transaction history and filtering, advanced analytics post-MVP
 
 ## Development Guidelines
+
 - Follow task-based development approach from guideline.md
 - Implement one subtask at a time with proper testing
 - Update memory.md after significant architectural decisions
