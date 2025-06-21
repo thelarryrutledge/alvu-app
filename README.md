@@ -4,7 +4,9 @@ A Progressive Web Application for envelope-based budget management, built with S
 
 ## Live Demo
 
-🚀 **[View Live App](https://alvu-app.vercel.app/)**
+🚀 **[View Live App](https://alvu.app/)**
+
+*Production domain hosted on Vercel*
 
 ## Overview
 

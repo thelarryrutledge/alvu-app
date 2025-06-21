@@ -9,7 +9,7 @@ Alvu is a Progressive Web Application for envelope-based budget management. The 
 - **Frontend**: Svelte with Vite build system
 - **Styling**: Tailwind CSS for responsive design
 - **Backend**: Supabase (PostgreSQL database, authentication, real-time features)
-- **Deployment**: Vercel hosting platform
+- **Deployment**: Vercel hosting platform with production domain at alvu.app
 - **PWA**: Service worker and manifest for mobile installation
 
 ## Core Architecture Decisions
@@ -141,6 +141,16 @@ All subtasks in Task 1 have been successfully completed:
 - ✅ Comprehensive README with setup and development instructions
 
 The project foundation is now complete and ready for Task 2: Database Schema & Supabase Configuration.
+
+## Task 2: Database Schema & Supabase Configuration - IN PROGRESS
+- ✅ Users table designed and created with comprehensive RLS policies
+  - Created SQL migration file with users table extending Supabase Auth
+  - Implemented Row Level Security policies for data protection
+  - Added automatic profile creation trigger on user signup
+  - Updated TypeScript types to match enhanced user schema
+  - Created database migrations documentation and testing framework
+  - Users table includes profile fields: first_name, last_name, display_name, avatar_url, timezone, currency, date_format
+  - Ready for migration application in Supabase Dashboard
 
 ## Critical Implementation Notes
 

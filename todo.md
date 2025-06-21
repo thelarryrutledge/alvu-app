@@ -15,7 +15,7 @@
 
 ## Task 2: Database Schema & Supabase Configuration
 
-- [ ] Design and create users table with RLS policies
+- [x] Design and create users table with RLS policies
 - [ ] Create income_sources table with frequency enum
 - [ ] Create categories table with default categories
 - [ ] Create envelopes table with type enum (regular, savings, debt)
