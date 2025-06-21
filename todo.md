@@ -31,7 +31,7 @@
 - [x] Set up Supabase Auth configuration
 - [x] Create login page with email/password
 - [x] Create registration page with validation
-- [ ] Implement password reset functionality
+- [x] Implement password reset functionality
 - [ ] Create authentication store in Svelte
 - [ ] Add route protection for authenticated pages
 - [ ] Create user profile management page
