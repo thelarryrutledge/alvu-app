@@ -6,7 +6,7 @@
 - [x] Set up PWA configuration (manifest.json, service worker)
 - [x] Configure Vercel deployment settings
 - [x] Set up Supabase project and obtain API keys
-- [ ] Create environment configuration files
+- [x] Create environment configuration files
 - [ ] Set up basic project structure and folders
 - [ ] Initialize Git repository and create initial commit
 - [ ] Configure ESLint and Prettier for code quality
