@@ -1,5 +1,6 @@
 -- Migration 001: Create users table with RLS policies
 -- This extends Supabase Auth users with additional profile information
+-- SAFE TO RUN: Uses IF NOT EXISTS and IF EXISTS clauses to prevent conflicts
 
 -- Create users table (extends auth.users)
 CREATE TABLE IF NOT EXISTS public.users (
@@ -45,6 +46,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger to automatically create user profile
+-- Note: DROP IF EXISTS ensures we can safely recreate the trigger if it already exists
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users

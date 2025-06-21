@@ -15,6 +15,8 @@ This directory contains SQL migration files for the Alvu PWA database schema.
 3. Copy and paste the contents of each migration file
 4. Execute the SQL commands in order (001, 002, etc.)
 
+**Note**: You may see a warning about "destructive operations" due to the `DROP TRIGGER IF EXISTS` statement. This is expected and safe - it ensures the trigger can be recreated if it already exists.
+
 ### Using Supabase CLI (Alternative)
 
 If you have the Supabase CLI installed:
