@@ -3,8 +3,8 @@
 ## Task 1: Project Foundation & Setup
 - [x] Initialize Svelte project with Vite
 - [x] Configure Tailwind CSS for responsive design
-- [ ] Set up PWA configuration (manifest.json, service worker)
-- [ ] Configure Vercel deployment settings
+- [x] Set up PWA configuration (manifest.json, service worker)
+- [x] Configure Vercel deployment settings
 - [ ] Set up Supabase project and obtain API keys
 - [ ] Create environment configuration files
 - [ ] Set up basic project structure and folders
