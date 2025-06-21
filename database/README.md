@@ -35,7 +35,8 @@ Migrations must be applied in numerical order:
 
 1. `001_create_users_table.sql` - Base users table
 2. `002_create_income_sources_table.sql` - Income sources with frequency enum
-3. Future migrations will be numbered sequentially
+3. `003_create_categories_table.sql` - Categories with default categories
+4. Future migrations will be numbered sequentially
 
 ## Database Schema Overview
 
@@ -70,6 +71,27 @@ The `income_sources` table manages multiple income streams for users:
 - **next_expected_date**: Automatically calculated next income date
 - **created_at/updated_at**: Timestamps
 
+### Categories Table
+
+The `categories` table manages envelope categories with three default categories:
+
+- **id**: UUID primary key
+- **user_id**: References users table
+- **name**: Category name (unique per user)
+- **color**: Hex color code for UI display (validated format)
+- **icon**: Optional icon name/class for UI
+- **description**: Optional category description
+- **is_default**: Whether this is a default system category
+- **sort_order**: Order for displaying categories
+- **created_at/updated_at**: Timestamps
+
+#### Default Categories
+
+Three categories are automatically created for new users:
+1. **Unassigned** (#6B7280) - Default category for unassigned envelopes
+2. **Savings** (#10B981) - Category for savings goals and emergency funds
+3. **Debt** (#EF4444) - Category for debt payments and loan management
+
 ### Row Level Security (RLS)
 
 All tables implement Row Level Security policies:
@@ -80,10 +102,13 @@ All tables implement Row Level Security policies:
 
 ### Triggers and Functions
 
-- `handle_new_user()`: Automatically creates user profile on signup
+- `handle_new_user()`: Automatically creates user profile and default categories on signup
 - `update_updated_at_column()`: Automatically updates the updated_at timestamp
 - `calculate_next_income_date()`: Calculates next expected income date based on frequency
 - `set_next_income_date()`: Automatically sets next_expected_date on insert/update
+- `create_default_categories()`: Creates the three default categories for a user
+- `get_category_stats()`: Returns category statistics with envelope counts and balances
+- `reorder_categories()`: Updates sort order for multiple categories
 
 ## Testing Migrations
 

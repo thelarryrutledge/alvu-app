@@ -19,10 +19,20 @@ export interface Category {
 	id: string
 	user_id: string
 	name: string
-	color?: string
+	color: string
+	icon?: string
+	description?: string
 	is_default: boolean
+	sort_order: number
 	created_at: string
 	updated_at: string
+}
+
+export interface CategoryStats {
+	category_id: string
+	category_name: string
+	envelope_count: number
+	total_balance: number
 }
 
 export interface Envelope {
