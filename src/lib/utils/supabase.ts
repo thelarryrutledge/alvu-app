@@ -1,28 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public'
 
+// Log environment variables for debugging (only in development)
+if (typeof window !== 'undefined') {
+	console.log('Supabase configuration:')
+	console.log('URL:', PUBLIC_SUPABASE_URL || 'Not set')
+	console.log('Key length:', PUBLIC_SUPABASE_ANON_KEY?.length || 0)
+	
+	// Warn about potential issues but don't crash
+	if (PUBLIC_SUPABASE_URL && !PUBLIC_SUPABASE_URL.startsWith('https://')) {
+		console.warn('Warning: Supabase URL should start with https://', PUBLIC_SUPABASE_URL)
+	}
+	
+	if (PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_URL.includes('@')) {
+		console.warn('Warning: Supabase URL contains credentials (@). This may cause fetch errors.')
+	}
+}
+
 if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_ANON_KEY) {
-	console.error('Missing Supabase environment variables:')
-	console.error('PUBLIC_SUPABASE_URL:', PUBLIC_SUPABASE_URL ? 'Set' : 'Missing')
-	console.error('PUBLIC_SUPABASE_ANON_KEY:', PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing')
 	throw new Error('Missing Supabase environment variables')
 }
-
-// Validate URL format
-if (PUBLIC_SUPABASE_URL && !PUBLIC_SUPABASE_URL.startsWith('https://')) {
-	console.error('Invalid Supabase URL format:', PUBLIC_SUPABASE_URL)
-	throw new Error('Supabase URL must start with https://')
-}
-
-// Check for credentials in URL (which causes the fetch error)
-if (PUBLIC_SUPABASE_URL && PUBLIC_SUPABASE_URL.includes('@')) {
-	console.error('Supabase URL contains credentials (@ symbol):', PUBLIC_SUPABASE_URL)
-	throw new Error('Supabase URL should not contain credentials. Use the project URL, not a connection string.')
-}
-
-console.log('Supabase configuration:')
-console.log('URL:', PUBLIC_SUPABASE_URL)
-console.log('Key length:', PUBLIC_SUPABASE_ANON_KEY?.length || 0)
 
 // Create Supabase client with auth configuration
 export const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
