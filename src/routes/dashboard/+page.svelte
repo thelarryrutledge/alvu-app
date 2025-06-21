@@ -1,42 +1,22 @@
 <script lang="ts">
 	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
-	import { user, authStore } from '$lib/stores/auth'
-
-	// Handle logout
-	async function handleLogout() {
-		await authStore.signOut()
-	}
+	import AppLayout from '$lib/components/AppLayout.svelte'
+	import { user } from '$lib/stores/auth'
 </script>
 
-<svelte:head>
-	<title>Dashboard - Alvu</title>
-	<meta name="description" content="Your Alvu budget dashboard" />
-</svelte:head>
-
 <ProtectedRoute>
-	<div class="min-h-screen bg-gray-50">
-		<!-- Header -->
-		<header class="bg-white shadow">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex justify-between items-center py-6">
-					<div>
-						<h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-						{#if $user}
-							<p class="text-gray-600">Welcome back, {$user.user_metadata?.first_name || $user.email}!</p>
-						{/if}
-					</div>
-					<button
-						on:click={handleLogout}
-						class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-					>
-						Sign Out
-					</button>
-				</div>
-			</div>
-		</header>
+	<AppLayout title="Dashboard - Alvu">
+		<!-- Page Header -->
+		<div class="mb-8">
+			<h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+			{#if $user}
+				<p class="text-gray-600 mt-1">Welcome back, {$user.user_metadata?.first_name || $user.email}!</p>
+			{/if}
+		</div>
 
-		<!-- Main Content -->
-		<main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+		<!-- Dashboard Content -->
+		<div class="space-y-8">
+			<!-- Stats Cards -->
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				<!-- Available Funds Card -->
 				<div class="bg-white overflow-hidden shadow rounded-lg">
@@ -156,6 +136,6 @@
 					<li>Start tracking your expenses</li>
 				</ol>
 			</div>
-		</main>
-	</div>
+		</div>
+	</AppLayout>
 </ProtectedRoute>

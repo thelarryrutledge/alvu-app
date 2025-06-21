@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation'
 	import { authStore, user, loading, error } from '$lib/stores/auth'
 	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
+	import AppLayout from '$lib/components/AppLayout.svelte'
 
 	// Form state
 	let firstName = ''
@@ -239,48 +240,18 @@
 		}
 	}
 
-	// Handle logout
-	async function handleLogout() {
-		await authStore.signOut()
-	}
 </script>
 
-<svelte:head>
-	<title>Profile - Alvu</title>
-	<meta name="description" content="Manage your Alvu account profile" />
-</svelte:head>
-
 <ProtectedRoute>
-	<div class="min-h-screen bg-gray-50">
-		<!-- Header -->
-		<header class="bg-white shadow">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex justify-between items-center py-6">
-					<div>
-						<h1 class="text-3xl font-bold text-gray-900">Profile Settings</h1>
-						<p class="text-gray-600">Manage your account information and preferences</p>
-					</div>
-					<div class="flex space-x-4">
-						<a
-							href="/dashboard"
-							class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-						>
-							Back to Dashboard
-						</a>
-						<button
-							on:click={handleLogout}
-							class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-						>
-							Sign Out
-						</button>
-					</div>
-				</div>
-			</div>
-		</header>
+	<AppLayout title="Profile - Alvu">
+		<!-- Page Header -->
+		<div class="mb-8">
+			<h1 class="text-3xl font-bold text-gray-900">Profile Settings</h1>
+			<p class="text-gray-600 mt-1">Manage your account information and preferences</p>
+		</div>
 
-		<!-- Main Content -->
-		<main class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-			<div class="space-y-8">
+		<!-- Profile Content -->
+		<div class="max-w-4xl space-y-8">
 				<!-- Success Message -->
 				{#if successMessage}
 					<div class="bg-green-50 border border-green-200 rounded-md p-4">
@@ -554,7 +525,6 @@
 						</button>
 					</form>
 				</div>
-			</div>
-		</main>
-	</div>
+		</div>
+	</AppLayout>
 </ProtectedRoute>

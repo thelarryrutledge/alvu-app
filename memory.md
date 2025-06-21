@@ -323,6 +323,21 @@ The project foundation is now complete and ready for Task 2: Database Schema & S
 - **No Multi-Currency**: Single currency support for initial release
 - **Basic Reporting**: Transaction history and filtering, advanced analytics post-MVP
 
+## Task 4: Core UI Framework & Navigation - IN PROGRESS
+- ✅ Main app layout component created
+  - Created comprehensive AppLayout.svelte component with responsive navigation
+  - Implemented desktop navigation bar with icons and active state highlighting
+  - Added mobile-responsive hamburger menu with slide-out navigation
+  - Integrated user authentication display with profile and logout options
+  - Created consistent header structure with Alvu branding
+  - Added proper accessibility features (ARIA labels, keyboard navigation, screen reader support)
+  - Implemented route-based active navigation highlighting
+  - Updated dashboard and profile pages to use the new AppLayout component
+  - Created comprehensive test suite validating component structure and functionality
+  - Navigation includes: Dashboard, Income, Envelopes, Expenses, Transactions, Categories
+  - Mobile menu includes user profile information and actions
+  - Successfully tested in browser with authentication flow
+
 ## Development Guidelines
 
 - Follow task-based development approach from guideline.md
