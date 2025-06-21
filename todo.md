@@ -19,7 +19,7 @@
 - [x] Create income_sources table with frequency enum
 - [x] Create categories table with default categories
 - [x] Create envelopes table with type enum (regular, savings, debt)
-- [ ] Create transactions table with type enum (income, expense, transfer, allocation)
+- [x] Create transactions table with type enum (income, expense, transfer, allocation)
 - [ ] Create allocations table for income distribution
 - [ ] Create payees table for saved payee information
 - [ ] Set up Row Level Security (RLS) policies for all tables

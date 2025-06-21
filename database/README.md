@@ -8,6 +8,7 @@ This directory contains SQL migration files for the Alvu PWA database schema.
 - `002_create_income_sources_table.sql` - Creates income sources table with frequency enum
 - `003_create_categories_table.sql` - Creates categories table with default categories
 - `004_create_envelopes_table.sql` - Creates envelopes table with type enum (regular, savings, debt)
+- `005_create_transactions_table.sql` - Creates transactions table with type enum (income, expense, transfer, allocation)
 
 ## How to Apply Migrations
 
@@ -40,7 +41,8 @@ Migrations must be applied in numerical order:
 2. `002_create_income_sources_table.sql` - Income sources with frequency enum
 3. `003_create_categories_table.sql` - Categories with default categories
 4. `004_create_envelopes_table.sql` - Envelopes with type enum (regular, savings, debt)
-5. Future migrations will be numbered sequentially
+5. `005_create_transactions_table.sql` - Transactions with type enum (income, expense, transfer, allocation)
+6. Future migrations will be numbered sequentially
 
 ## Database Schema Overview
 
@@ -124,6 +126,37 @@ The `envelopes` table manages budget envelopes with three distinct types:
 - **Savings envelopes**: Must have target_amount, balance >= 0
 - **Debt envelopes**: Balance must be <= 0, must have APR
 
+### Transactions Table
+
+The `transactions` table manages all financial transactions with four distinct types:
+
+- **id**: UUID primary key
+- **user_id**: References users table
+- **envelope_id**: References envelopes table (for expense and allocation transactions)
+- **type**: Enum (income, expense, transfer, allocation)
+- **amount**: Transaction amount (decimal with 2 decimal places, must be positive)
+- **description**: Transaction description (required, non-empty)
+- **payee**: Optional payee name for expense transactions
+- **date**: Transaction date (defaults to current date)
+- **created_at/updated_at**: Timestamps
+- **source_envelope_id**: Source envelope for transfer transactions
+- **destination_envelope_id**: Destination envelope for transfer transactions
+- **income_source_id**: Income source reference for income transactions
+
+#### Transaction Types
+
+1. **Income** - Money coming in from income sources (goes to available funds)
+2. **Expense** - Money spent from envelopes (reduces envelope balance)
+3. **Transfer** - Money moved between envelopes (reduces source, increases destination)
+4. **Allocation** - Money allocated from available funds to envelopes
+
+#### Type-Specific Constraints
+
+- **Income transactions**: Must have income_source_id, no envelope references
+- **Expense transactions**: Must have envelope_id, no other references
+- **Transfer transactions**: Must have both source_envelope_id and destination_envelope_id (different)
+- **Allocation transactions**: Must have envelope_id, no other references
+
 ### Row Level Security (RLS)
 
 All tables implement Row Level Security policies:
@@ -146,6 +179,11 @@ All tables implement Row Level Security policies:
 - `get_total_debt()`: Returns total debt amount (absolute value of negative debt balances)
 - `calculate_savings_progress()`: Calculates savings goal progress percentage
 - `calculate_debt_progress()`: Calculates debt payoff progress percentage
+- `process_income_transaction()`: Processes income transactions and updates available funds
+- `process_expense_transaction()`: Processes expense transactions with balance validation
+- `process_transfer_transaction()`: Processes transfers between envelopes with balance updates
+- `process_allocation_transaction()`: Processes allocation from available funds to envelopes
+- `get_transaction_summary()`: Returns transaction summary by type with date filtering
 
 ## Testing Migrations
 
