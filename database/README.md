@@ -5,6 +5,9 @@ This directory contains SQL migration files for the Alvu PWA database schema.
 ## Migration Files
 
 - `001_create_users_table.sql` - Creates the users table with RLS policies
+- `002_create_income_sources_table.sql` - Creates income sources table with frequency enum
+- `003_create_categories_table.sql` - Creates categories table with default categories
+- `004_create_envelopes_table.sql` - Creates envelopes table with type enum (regular, savings, debt)
 
 ## How to Apply Migrations
 
@@ -36,7 +39,8 @@ Migrations must be applied in numerical order:
 1. `001_create_users_table.sql` - Base users table
 2. `002_create_income_sources_table.sql` - Income sources with frequency enum
 3. `003_create_categories_table.sql` - Categories with default categories
-4. Future migrations will be numbered sequentially
+4. `004_create_envelopes_table.sql` - Envelopes with type enum (regular, savings, debt)
+5. Future migrations will be numbered sequentially
 
 ## Database Schema Overview
 
@@ -92,6 +96,34 @@ Three categories are automatically created for new users:
 2. **Savings** (#10B981) - Category for savings goals and emergency funds
 3. **Debt** (#EF4444) - Category for debt payments and loan management
 
+### Envelopes Table
+
+The `envelopes` table manages budget envelopes with three distinct types:
+
+- **id**: UUID primary key
+- **user_id**: References users table
+- **category_id**: References categories table
+- **name**: Envelope name (unique per user)
+- **type**: Enum (regular, savings, debt)
+- **balance**: Current envelope balance (decimal with 2 decimal places)
+- **target_amount**: Target amount for savings envelopes (required for savings type)
+- **target_date**: Optional target date for savings goals
+- **apr**: Annual percentage rate for debt envelopes (required for debt type)
+- **minimum_payment**: Minimum payment amount for debt envelopes
+- **created_at/updated_at**: Timestamps
+
+#### Envelope Types
+
+1. **Regular** - Standard budget envelopes with positive balances
+2. **Savings** - Goal-oriented envelopes with target amounts and dates
+3. **Debt** - Debt tracking envelopes with negative balances and APR calculations
+
+#### Type-Specific Constraints
+
+- **Regular envelopes**: Balance must be >= 0, no APR or minimum payment
+- **Savings envelopes**: Must have target_amount, balance >= 0
+- **Debt envelopes**: Balance must be <= 0, must have APR
+
 ### Row Level Security (RLS)
 
 All tables implement Row Level Security policies:
@@ -109,6 +141,11 @@ All tables implement Row Level Security policies:
 - `create_default_categories()`: Creates the three default categories for a user
 - `get_category_stats()`: Returns category statistics with envelope counts and balances
 - `reorder_categories()`: Updates sort order for multiple categories
+- `get_envelope_summary()`: Returns envelope summary grouped by type with counts and totals
+- `get_available_funds()`: Returns total available funds (sum of positive envelope balances)
+- `get_total_debt()`: Returns total debt amount (absolute value of negative debt balances)
+- `calculate_savings_progress()`: Calculates savings goal progress percentage
+- `calculate_debt_progress()`: Calculates debt payoff progress percentage
 
 ## Testing Migrations
 

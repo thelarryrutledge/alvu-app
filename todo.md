@@ -18,7 +18,7 @@
 - [x] Design and create users table with RLS policies
 - [x] Create income_sources table with frequency enum
 - [x] Create categories table with default categories
-- [ ] Create envelopes table with type enum (regular, savings, debt)
+- [x] Create envelopes table with type enum (regular, savings, debt)
 - [ ] Create transactions table with type enum (income, expense, transfer, allocation)
 - [ ] Create allocations table for income distribution
 - [ ] Create payees table for saved payee information

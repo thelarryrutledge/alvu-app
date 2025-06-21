@@ -168,6 +168,17 @@ The project foundation is now complete and ready for Task 2: Database Schema & S
   - Updated TypeScript types with Category and CategoryStats interfaces
   - Added Row Level Security policies with special handling for default categories
   - Ready for migration application in Supabase Dashboard
+- ✅ Envelopes table created with comprehensive type enum system (regular, savings, debt)
+  - Created SQL migration with envelopes table and envelope_type enum (regular, savings, debt)
+  - Implemented type-specific validation constraints and balance rules
+  - Added comprehensive helper functions for financial calculations (available funds, debt totals, progress tracking)
+  - Enhanced TypeScript types with Envelope interface already defined
+  - Created thorough test framework validating all constraints and functions
+  - Includes specialized logic for each envelope type with appropriate balance constraints
+  - Regular envelopes: positive balances only, basic budgeting functionality
+  - Savings envelopes: positive balances with required target amounts and progress tracking
+  - Debt envelopes: negative balances with APR calculations and payoff tracking
+  - Migration successfully applied and tested in database
 
 ## Critical Implementation Notes
 
