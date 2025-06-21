@@ -4,6 +4,7 @@
 	import { page } from '$app/stores'
 	import { authStore, user, loading, error, isAuthenticated } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
+	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 
 	// Form state
 	let password = ''
@@ -20,10 +21,6 @@
 		general: ''
 	}
 
-	// Redirect if already authenticated
-	$: if ($isAuthenticated && !isSuccess) {
-		goto('/dashboard')
-	}
 
 	// Clear general error when form changes
 	$: if (password || confirmPassword) {
@@ -144,6 +141,7 @@
 	<meta name="description" content="Create a new password for your Alvu account" />
 </svelte:head>
 
+<ProtectedRoute requireAuth={false}>
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		{#if !isSuccess}
@@ -322,3 +320,4 @@
 		{/if}
 	</div>
 </div>
+</ProtectedRoute>

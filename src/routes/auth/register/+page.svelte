@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte'
 	import { goto } from '$app/navigation'
 	import { authStore, user, loading, error, isAuthenticated } from '$lib/stores/auth'
+	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 
 	// Form state
 	let email = ''
@@ -21,10 +22,6 @@
 		general: ''
 	}
 
-	// Redirect if already authenticated
-	$: if ($isAuthenticated) {
-		goto('/dashboard')
-	}
 
 	// Clear general error when form changes
 	$: if (email || password || confirmPassword || firstName || lastName) {
@@ -168,6 +165,7 @@
 	<meta name="description" content="Create your Alvu budget management account" />
 </svelte:head>
 
+<ProtectedRoute requireAuth={false}>
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<!-- Header -->
@@ -388,3 +386,4 @@
 		</div>
 	</div>
 </div>
+</ProtectedRoute>

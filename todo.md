@@ -32,12 +32,12 @@
 - [x] Create login page with email/password
 - [x] Create registration page with validation
 - [x] Implement password reset functionality
-- [ ] Create authentication store in Svelte
-- [ ] Add route protection for authenticated pages
-- [ ] Create user profile management page
-- [ ] Implement logout functionality
-- [ ] Add loading states for auth operations
-- [ ] Test authentication flow end-to-end
+- [x] Create authentication store in Svelte
+- [x] Add route protection for authenticated pages
+- [x] Create user profile management page
+- [x] Implement logout functionality
+- [x] Add loading states for auth operations
+- [x] Test authentication flow end-to-end
 
 ## Task 4: Core UI Framework & Navigation
 

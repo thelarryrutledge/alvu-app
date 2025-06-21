@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte'
 	import { goto } from '$app/navigation'
 	import { authStore, isAuthenticated } from '$lib/stores/auth'
+	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 
 	let email = ''
 	let isResending = false
@@ -25,10 +26,6 @@
 		}
 	})
 
-	// Redirect if already authenticated
-	$: if ($isAuthenticated) {
-		goto('/dashboard')
-	}
 
 	// Resend confirmation email
 	async function resendConfirmation() {
@@ -63,6 +60,7 @@
 	<meta name="description" content="Confirm your email address to complete registration" />
 </svelte:head>
 
+<ProtectedRoute requireAuth={false}>
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<!-- Header -->
@@ -157,3 +155,4 @@
 		</div>
 	</div>
 </div>
+</ProtectedRoute>

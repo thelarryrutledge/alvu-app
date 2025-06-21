@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
 	import { goto } from '$app/navigation'
+	import { page } from '$app/stores'
 	import { authStore, user, loading, error, isAuthenticated } from '$lib/stores/auth'
+	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 
 	// Form state
 	let email = ''
@@ -14,10 +16,17 @@
 		general: ''
 	}
 
-	// Redirect if already authenticated
-	$: if ($isAuthenticated) {
-		goto('/dashboard')
-	}
+	// Handle redirect after successful login
+	let redirectPath = '/dashboard'
+	
+	onMount(() => {
+		// Get redirect parameter from URL
+		const urlParams = new URLSearchParams(window.location.search)
+		const redirect = urlParams.get('redirect')
+		if (redirect) {
+			redirectPath = decodeURIComponent(redirect)
+		}
+	})
 
 	// Clear general error when form changes
 	$: if (email || password) {
@@ -65,8 +74,9 @@
 			const result = await authStore.signIn(email.trim(), password)
 			
 			if (result.success) {
-				// Success - redirect will happen automatically via store subscription
+				// Success - redirect to intended page
 				console.log('Login successful')
+				goto(redirectPath)
 			} else {
 				formErrors.general = result.error || 'Login failed. Please try again.'
 			}
@@ -91,6 +101,7 @@
 	<meta name="description" content="Sign in to your Alvu budget management account" />
 </svelte:head>
 
+<ProtectedRoute requireAuth={false}>
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<!-- Header -->
@@ -219,3 +230,4 @@
 		</div>
 	</div>
 </div>
+</ProtectedRoute>
