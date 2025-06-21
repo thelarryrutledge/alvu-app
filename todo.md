@@ -29,7 +29,7 @@
 ## Task 3: Authentication System
 
 - [x] Set up Supabase Auth configuration
-- [ ] Create login page with email/password
+- [x] Create login page with email/password
 - [ ] Create registration page with validation
 - [ ] Implement password reset functionality
 - [ ] Create authentication store in Svelte
