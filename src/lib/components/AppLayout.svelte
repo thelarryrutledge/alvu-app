@@ -5,6 +5,7 @@
 	// Props
 	export let title: string = 'Alvu'
 	export let showNavigation: boolean = true
+	export let showBottomNav: boolean = true
 	
 	// Navigation items
 	const navigationItems = [
@@ -14,6 +15,14 @@
 		{ name: 'Expenses', href: '/expenses', icon: 'expenses' },
 		{ name: 'Transactions', href: '/transactions', icon: 'transactions' },
 		{ name: 'Categories', href: '/categories', icon: 'categories' }
+	]
+	
+	// Bottom navigation items (most important for mobile)
+	const bottomNavItems = [
+		{ name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+		{ name: 'Income', href: '/income', icon: 'income' },
+		{ name: 'Envelopes', href: '/envelopes', icon: 'envelopes' },
+		{ name: 'Expenses', href: '/expenses', icon: 'expenses' }
 	]
 	
 	// Mobile menu state
@@ -247,9 +256,30 @@
 	{/if}
 
 	<!-- Main Content -->
-	<main class="{showNavigation ? 'lg:pl-72' : ''} py-6 px-4 sm:px-6 lg:px-8">
+	<main class="{showNavigation ? 'lg:pl-72' : ''} {showBottomNav && showNavigation ? 'pb-20 lg:pb-6' : 'pb-6'} py-6 px-4 sm:px-6 lg:px-8">
 		<slot />
 	</main>
+
+	<!-- Bottom Navigation for Mobile -->
+	{#if showNavigation && showBottomNav}
+		<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 lg:hidden">
+			<div class="grid grid-cols-4 h-16">
+				{#each bottomNavItems as item}
+					<a
+						href={item.href}
+						class="flex flex-col items-center justify-center space-y-1 text-xs font-medium transition-colors duration-200 {isActiveRoute(item.href)
+							? 'text-blue-600 bg-blue-50'
+							: 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}"
+					>
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							{@html getIcon(item.icon)}
+						</svg>
+						<span class="truncate">{item.name}</span>
+					</a>
+				{/each}
+			</div>
+		</nav>
+	{/if}
 </div>
 
 <!-- Click outside to close mobile menu -->
