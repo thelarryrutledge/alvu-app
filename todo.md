@@ -96,7 +96,7 @@
 
 - [x] Create envelopes list page with category grouping
 - [x] Implement add envelope form with type selection
-- [ ] Create regular envelope configuration
+- [x] Create regular envelope configuration
 - [ ] Implement savings envelope with goal settings
 - [ ] Create debt envelope with balance/APR fields
 - [ ] Add envelope validation logic
