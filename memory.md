@@ -470,6 +470,17 @@ The core UI framework is now complete and ready for Task 5: Dashboard & Availabl
   - Integrated toast notification system for user feedback and guidance
   - Added navigation logic using goto() for directing users to prerequisite pages
   - Successfully tested all buttons in browser - proper validation and user feedback working correctly
+- ✅ Envelope overview with balances added
+  - Created comprehensive envelope overview section with responsive grid layout
+  - Implemented envelope cards showing name, type, balance, and progress indicators
+  - Added type-specific styling and badges (regular: blue, savings: green, debt: red)
+  - Created progress bars for savings goals and debt tracking with percentage calculations
+  - Added summary row showing total balance, savings goals, and debt balance aggregations
+  - Implemented intelligent empty state with call-to-action for new users
+  - Added "Manage envelopes →" navigation link for easy access to envelope management
+  - Included loading states with skeleton animations for smooth user experience
+  - Enhanced with hover effects and smooth transitions for better interactivity
+  - Successfully tested empty state in browser - shows proper guidance for new users
 - ✅ Form input components created
   - Created comprehensive FormInput.svelte component with multiple input types (text, email, password, number, tel, url, search)
   - Implemented FormTextarea.svelte with character counting, resize options, and validation

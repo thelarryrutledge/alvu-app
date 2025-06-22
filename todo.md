@@ -57,7 +57,7 @@
 - [x] Create dashboard page component
 - [x] Implement prominent available funds display card
 - [x] Create quick action buttons section (Add Income, Add Expense, Transfer, Allocate)
-- [ ] Add envelope overview with balances
+- [x] Add envelope overview with balances
 - [ ] Create recent transactions preview
 - [ ] Implement refresh functionality for real-time updates
 - [ ] Create empty state for new users

@@ -292,6 +292,134 @@
 					</div>
 				</section>
 
+				<!-- Envelope Overview Section -->
+				<section class="envelope-overview">
+					<div class="mb-6">
+						<div class="flex items-center justify-between">
+							<div>
+								<h2 class="text-xl font-semibold text-gray-900">Envelope Overview</h2>
+								<p class="text-sm text-gray-600">Your budget envelopes and current balances</p>
+							</div>
+							<a href="/envelopes" class="text-sm text-blue-600 hover:text-blue-500 font-medium">
+								Manage envelopes →
+							</a>
+						</div>
+					</div>
+					
+					{#if loading}
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{#each Array(3) as _}
+								<div class="bg-white rounded-lg shadow p-4 animate-pulse">
+									<div class="flex items-center justify-between mb-3">
+										<div class="h-4 bg-gray-200 rounded w-24"></div>
+										<div class="h-3 bg-gray-200 rounded w-16"></div>
+									</div>
+									<div class="h-6 bg-gray-200 rounded w-20 mb-2"></div>
+									<div class="h-2 bg-gray-200 rounded w-full"></div>
+								</div>
+							{/each}
+						</div>
+					{:else if envelopes.length > 0}
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{#each envelopes as envelope}
+								<div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200 p-4">
+									<div class="flex items-center justify-between mb-3">
+										<h3 class="font-medium text-gray-900 truncate">{envelope.name}</h3>
+										<span class="text-xs px-2 py-1 rounded-full {
+											envelope.type === 'regular' ? 'bg-blue-100 text-blue-800' :
+											envelope.type === 'savings' ? 'bg-green-100 text-green-800' :
+											'bg-red-100 text-red-800'
+										}">
+											{envelope.type}
+										</span>
+									</div>
+									
+									<div class="mb-3">
+										<div class="text-lg font-semibold {
+											envelope.balance >= 0 ? 'text-gray-900' : 'text-red-600'
+										}">
+											{formatCurrency(envelope.balance)}
+										</div>
+										{#if envelope.type === 'savings' && envelope.target_amount}
+											<div class="text-xs text-gray-500 mt-1">
+												Goal: {formatCurrency(envelope.target_amount)}
+											</div>
+										{:else if envelope.type === 'debt' && envelope.target_amount}
+											<div class="text-xs text-gray-500 mt-1">
+												Total debt: {formatCurrency(Math.abs(envelope.target_amount))}
+											</div>
+										{/if}
+									</div>
+									
+									<!-- Progress bar for savings/debt envelopes -->
+									{#if envelope.type === 'savings' && envelope.target_amount && envelope.target_amount > 0}
+										<div class="w-full bg-gray-200 rounded-full h-2">
+											<div
+												class="bg-green-500 h-2 rounded-full transition-all duration-300"
+												style="width: {Math.min(100, Math.max(0, (envelope.balance / envelope.target_amount) * 100))}%"
+											></div>
+										</div>
+										<div class="text-xs text-gray-500 mt-1">
+											{Math.round((envelope.balance / envelope.target_amount) * 100)}% of goal
+										</div>
+									{:else if envelope.type === 'debt' && envelope.target_amount && envelope.target_amount < 0}
+										<div class="w-full bg-gray-200 rounded-full h-2">
+											<div
+												class="bg-red-500 h-2 rounded-full transition-all duration-300"
+												style="width: {Math.min(100, Math.max(0, (Math.abs(envelope.balance) / Math.abs(envelope.target_amount)) * 100))}%"
+											></div>
+										</div>
+										<div class="text-xs text-gray-500 mt-1">
+											{Math.round((Math.abs(envelope.balance) / Math.abs(envelope.target_amount)) * 100)}% of debt
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
+						
+						<!-- Summary row -->
+						<div class="mt-6 bg-gray-50 rounded-lg p-4">
+							<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+								<div>
+									<div class="text-sm text-gray-500">Total Balance</div>
+									<div class="text-lg font-semibold text-gray-900">
+										{formatCurrency(envelopes.reduce((sum, env) => sum + env.balance, 0))}
+									</div>
+								</div>
+								<div>
+									<div class="text-sm text-gray-500">Savings Goals</div>
+									<div class="text-lg font-semibold text-green-600">
+										{formatCurrency(envelopes.filter(env => env.type === 'savings').reduce((sum, env) => sum + env.balance, 0))}
+									</div>
+								</div>
+								<div>
+									<div class="text-sm text-gray-500">Debt Balance</div>
+									<div class="text-lg font-semibold text-red-600">
+										{formatCurrency(envelopes.filter(env => env.type === 'debt').reduce((sum, env) => sum + env.balance, 0))}
+									</div>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<div class="bg-white rounded-lg shadow p-8 text-center">
+							<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+							</svg>
+							<h3 class="text-lg font-medium text-gray-900 mb-2">No envelopes yet</h3>
+							<p class="text-gray-500 mb-4">Create your first budget envelope to start organizing your money</p>
+							<a
+								href="/envelopes"
+								class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
+							>
+								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+								</svg>
+								Create Envelope
+							</a>
+						</div>
+					{/if}
+				</section>
+
 				<!-- Quick Actions Section -->
 				<section class="quick-actions">
 					<div class="mb-6">
