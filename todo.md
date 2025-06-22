@@ -81,7 +81,7 @@
 
 ## Task 7: Category Management System
 
-- [ ] Create categories list page
+- [x] Create categories list page
 - [ ] Implement default categories creation on user signup
 - [ ] Create add custom category form
 - [ ] Add category validation and duplicate prevention
