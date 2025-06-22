@@ -1,10 +1,35 @@
 <script lang="ts">
 	import AppLayout from '$lib/components/AppLayout.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import { modalHelpers } from '$lib/stores/modal';
 	
 	// Simple modal states
 	let showBasicModal = false;
 	let showConfirmationModal = false;
+	
+	// Store-based modal functions
+	function showStoreConfirmation() {
+		modalHelpers.confirm({
+			title: 'Delete Item',
+			message: 'Are you sure you want to delete this item? This action cannot be undone.',
+			variant: 'danger',
+			onConfirm: () => {
+				modalHelpers.alert({
+					title: 'Success',
+					message: 'Item has been deleted successfully.',
+					variant: 'success'
+				});
+			}
+		});
+	}
+	
+	function showStoreAlert() {
+		modalHelpers.alert({
+			title: 'Information',
+			message: 'This is an informational message using the modal store.',
+			variant: 'info'
+		});
+	}
 </script>
 
 <AppLayout>
@@ -16,9 +41,9 @@
 			</p>
 		</div>
 		
-		<!-- Simple Modal Tests -->
+		<!-- Direct Modal Usage -->
 		<div class="mb-12">
-			<h2 class="text-2xl font-semibold text-gray-900 mb-6">Modal Tests</h2>
+			<h2 class="text-2xl font-semibold text-gray-900 mb-6">Direct Modal Usage</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<button
 					on:click={() => showBasicModal = true}
@@ -32,6 +57,26 @@
 					class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
 				>
 					Confirmation Modal
+				</button>
+			</div>
+		</div>
+		
+		<!-- Store-based Modal Usage -->
+		<div class="mb-12">
+			<h2 class="text-2xl font-semibold text-gray-900 mb-6">Store-based Modal Usage</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<button
+					on:click={showStoreConfirmation}
+					class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+				>
+					Store Confirmation
+				</button>
+				
+				<button
+					on:click={showStoreAlert}
+					class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+				>
+					Store Alert
 				</button>
 			</div>
 		</div>
