@@ -6,6 +6,7 @@
 	import PageLoading from '$lib/components/PageLoading.svelte'
 	import Modal from '$lib/components/Modal.svelte'
 	import AddCategoryForm from '$lib/components/AddCategoryForm.svelte'
+	import EditCategoryForm from '$lib/components/EditCategoryForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -19,6 +20,8 @@
 	let hasError = false
 	let errorMessage = ''
 	let showAddModal = false
+	let showEditModal = false
+	let editingCategory: Category | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -143,7 +146,8 @@
 	}
 	
 	function handleEditCategory(category: Category) {
-		toastHelpers.info(`Edit category "${category.name}" functionality coming soon!`)
+		editingCategory = category
+		showEditModal = true
 	}
 	
 	function handleDeleteCategory(category: Category) {
@@ -163,6 +167,19 @@
 	
 	function handleAddCancel() {
 		showAddModal = false
+	}
+	
+	// Edit modal handlers
+	function handleEditSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showEditModal = false
+		editingCategory = null
+		// Refresh the categories list
+		loadCategoriesData()
+	}
+	
+	function handleEditCancel() {
+		showEditModal = false
+		editingCategory = null
 	}
 	
 	// Load data on mount
@@ -708,5 +725,24 @@
 				on:cancel={handleAddCancel}
 			/>
 		</Modal>
+		
+		<!-- Edit Category Modal -->
+		{#if editingCategory}
+			<Modal
+				bind:open={showEditModal}
+				size="xl"
+				variant="default"
+				title="Edit Category"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+			>
+				<EditCategoryForm
+					category={editingCategory}
+					on:success={handleEditSuccess}
+					on:cancel={handleEditCancel}
+				/>
+			</Modal>
+		{/if}
 	</AppLayout>
 </ProtectedRoute>

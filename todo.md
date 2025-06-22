@@ -85,7 +85,7 @@
 - [x] Implement default categories creation on user signup
 - [x] Create add custom category form
 - [x] Add category validation and duplicate prevention
-- [ ] Implement edit category functionality
+- [x] Implement edit category functionality
 - [ ] Add delete category with envelope reassignment
 - [ ] Create category display components
 - [ ] Implement category color coding system
