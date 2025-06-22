@@ -67,7 +67,7 @@
 
 ## Task 6: Income Source Management
 
-- [ ] Create income sources list page
+- [x] Create income sources list page
 - [ ] Implement add income source form
 - [ ] Create frequency selection dropdown
 - [ ] Add income source validation logic
