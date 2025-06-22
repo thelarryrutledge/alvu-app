@@ -90,7 +90,7 @@
 - [x] Create category display components
 - [x] Implement category color coding system
 - [x] Add category sorting functionality
-- [ ] Test category management operations
+- [x] Test category management operations
 
 ## Task 8: Envelope Management System
 
