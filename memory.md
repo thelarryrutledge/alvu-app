@@ -624,6 +624,23 @@ The dashboard and available funds display system is now complete and ready for T
     - Filter state includes: searchQuery, statusFilter, frequencyFilter, sortBy, sortOrder
     - Successfully integrated with existing income source display cards
     - Ready for next subtask: add income source status management
+  - [x] Add income source status management
+    - Implemented comprehensive income source status management functionality
+    - Added toggleIncomeSourceStatus function for individual status toggling with database updates
+    - Created bulk status management functions (toggleAllIncomeSourcesStatus, bulkUpdateIncomeSourcesStatus)
+    - Added bulk action buttons in income sources list header (Activate All, Deactivate All)
+    - Implemented individual status toggle buttons on each income source card
+    - Added visual status indicators: green checkmark for active, pause icon for inactive
+    - Enhanced status toggle buttons with proper hover states and color coding
+    - Integrated confirmation modals for bulk operations using modalHelpers.confirm()
+    - Added comprehensive error handling and user feedback with toast notifications
+    - Implemented automatic list refresh after status changes to show updated data
+    - Enhanced bulk action buttons with disabled states when no applicable sources exist
+    - Added responsive design for bulk actions with mobile-friendly button text
+    - Status management includes proper security checks with user_id validation
+    - Successfully tested individual and bulk status toggle functionality in browser
+    - Status changes properly update summary cards, monthly estimates, and visual indicators
+    - Ready for next subtask: test income source filtering
 
 ## Development Guidelines
 

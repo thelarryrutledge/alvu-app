@@ -252,6 +252,93 @@
 		}
 	}
 	
+	// Toggle income source status
+	async function toggleIncomeSourceStatus(incomeSource: IncomeSource) {
+		if (!$user) return
+		
+		const newStatus = !incomeSource.is_active
+		const statusText = newStatus ? 'activated' : 'deactivated'
+		
+		try {
+			const { error } = await supabase
+				.from('income_sources')
+				.update({
+					is_active: newStatus,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', incomeSource.id)
+				.eq('user_id', $user.id) // Security check
+			
+			if (error) {
+				console.error('Error toggling income source status:', error)
+				toastHelpers.error('Failed to update income source status. Please try again.')
+			} else {
+				toastHelpers.success(`"${incomeSource.name}" has been ${statusText}`)
+				// Refresh the income sources list
+				await loadIncomeSourcesData()
+			}
+		} catch (error) {
+			console.error('Error toggling income source status:', error)
+			toastHelpers.error('Failed to update income source status. Please try again.')
+		}
+	}
+	
+	// Bulk status management
+	async function toggleAllIncomeSourcesStatus(activate: boolean) {
+		if (!$user) return
+		
+		const statusText = activate ? 'activated' : 'deactivated'
+		const targetSources = activate
+			? incomeSources.filter(source => !source.is_active)
+			: incomeSources.filter(source => source.is_active)
+		
+		if (targetSources.length === 0) {
+			toastHelpers.info(`All income sources are already ${statusText}`)
+			return
+		}
+		
+		modalHelpers.confirm({
+			title: `${activate ? 'Activate' : 'Deactivate'} All Income Sources`,
+			message: `Are you sure you want to ${activate ? 'activate' : 'deactivate'} ${targetSources.length} income source${targetSources.length === 1 ? '' : 's'}?`,
+			variant: 'confirmation',
+			confirmText: activate ? 'Activate All' : 'Deactivate All',
+			cancelText: 'Cancel',
+			onConfirm: async () => {
+				await bulkUpdateIncomeSourcesStatus(targetSources, activate)
+			}
+		})
+	}
+	
+	async function bulkUpdateIncomeSourcesStatus(sources: IncomeSource[], activate: boolean) {
+		if (!$user) return
+		
+		const statusText = activate ? 'activated' : 'deactivated'
+		
+		try {
+			const updates = sources.map(source => ({
+				id: source.id,
+				is_active: activate,
+				updated_at: new Date().toISOString()
+			}))
+			
+			const { error } = await supabase
+				.from('income_sources')
+				.upsert(updates, { onConflict: 'id' })
+			
+			if (error) {
+				console.error('Error bulk updating income source status:', error)
+				toastHelpers.error('Failed to update income source statuses. Please try again.')
+			} else {
+				toastHelpers.success(`${sources.length} income source${sources.length === 1 ? '' : 's'} ${statusText} successfully`)
+				// Refresh the income sources list
+				await loadIncomeSourcesData()
+			}
+		} catch (error) {
+			console.error('Error bulk updating income source status:', error)
+			toastHelpers.error('Failed to update income source statuses. Please try again.')
+		}
+	}
+	
 	// Modal handlers
 	function handleAddSuccess(event: CustomEvent<{ id: string; name: string }>) {
 		showAddModal = false
@@ -634,20 +721,52 @@
 					<!-- Income Sources List -->
 					<section>
 						<div class="mb-6">
-							<div class="flex items-center justify-between">
+							<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 								<div>
 									<h2 class="text-xl font-semibold text-gray-900">Your Income Sources</h2>
 									<p class="text-sm text-gray-600">Manage your income streams and payment schedules</p>
 								</div>
-								<button
-									on:click={handleAddIncomeSource}
-									class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
-								>
-									<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-									</svg>
-									Add Source
-								</button>
+								<div class="flex flex-col sm:flex-row gap-2">
+									<!-- Bulk Actions -->
+									{#if incomeSources.length > 0}
+										<div class="flex gap-2">
+											<button
+												on:click={() => toggleAllIncomeSourcesStatus(true)}
+												disabled={incomeSources.every(source => source.is_active)}
+												class="inline-flex items-center px-3 py-2 border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+												title="Activate all income sources"
+											>
+												<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+												</svg>
+												<span class="hidden sm:inline">Activate All</span>
+												<span class="sm:hidden">All On</span>
+											</button>
+											<button
+												on:click={() => toggleAllIncomeSourcesStatus(false)}
+												disabled={incomeSources.every(source => !source.is_active)}
+												class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 bg-gray-50 hover:bg-gray-100 text-sm font-medium rounded-lg shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+												title="Deactivate all income sources"
+											>
+												<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+												</svg>
+												<span class="hidden sm:inline">Deactivate All</span>
+												<span class="sm:hidden">All Off</span>
+											</button>
+										</div>
+									{/if}
+									<button
+										on:click={handleAddIncomeSource}
+										class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
+									>
+										<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+										</svg>
+										<span class="hidden sm:inline">Add Source</span>
+										<span class="sm:hidden">Add</span>
+									</button>
+								</div>
 							</div>
 						</div>
 						
@@ -700,6 +819,22 @@
 												</div>
 												<!-- Action Buttons -->
 												<div class="flex items-center space-x-1 ml-2">
+													<!-- Status Toggle Button -->
+													<button
+														on:click={() => toggleIncomeSourceStatus(incomeSource)}
+														class="p-2 rounded-lg transition-all duration-200 {incomeSource.is_active ? 'text-green-600 hover:text-green-700 hover:bg-green-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}"
+														title="{incomeSource.is_active ? 'Deactivate' : 'Activate'} income source"
+													>
+														{#if incomeSource.is_active}
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+															</svg>
+														{:else}
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+															</svg>
+														{/if}
+													</button>
 													<button
 														on:click={() => handleEditIncomeSource(incomeSource)}
 														class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
