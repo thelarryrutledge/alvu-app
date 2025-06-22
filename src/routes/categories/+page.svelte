@@ -467,6 +467,7 @@
 			showCloseButton={true}
 			closeOnBackdrop={false}
 			closeOnEscape={true}
+			on:close={handleAddCancel}
 		>
 			<AddCategoryForm
 				on:success={handleAddSuccess}
@@ -484,6 +485,7 @@
 				showCloseButton={true}
 				closeOnBackdrop={false}
 				closeOnEscape={true}
+				on:close={handleEditCancel}
 			>
 				<EditCategoryForm
 					category={editingCategory}
@@ -503,6 +505,7 @@
 				showCloseButton={true}
 				closeOnBackdrop={false}
 				closeOnEscape={true}
+				on:close={handleDeleteCancel}
 			>
 				<DeleteCategoryModal
 					category={deletingCategory}
