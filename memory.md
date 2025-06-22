@@ -108,6 +108,7 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 
 **Current**: Task 8 - Envelope Management System
 - ✅ Create envelopes list page with category grouping - COMPLETED
+- ✅ Implement add envelope form with type selection - COMPLETED
 - Implement envelope CRUD operations with type-specific validation
 - Add progress tracking for savings goals and debt payoff
 
@@ -128,6 +129,24 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - **Database Integration**: Proper joins with categories table for grouping
 - **UI Components**: Reusable patterns consistent with existing pages
 - **Testing**: Comprehensive test suite covering all functionality
+
+### Task 8.2 Implementation Notes - Add Envelope Form
+- **AddEnvelopeForm Component**: Complete form component with type selection functionality
+  - Three envelope types supported: Regular, Savings, Debt with type-specific fields
+  - Real-time validation with comprehensive error handling and user feedback
+  - Category auto-selection based on envelope type (Regular→Unassigned, Savings→Savings, Debt→Debt)
+  - Type-specific field visibility and validation rules
+  - Preview section showing real-time form updates with progress indicators
+  - Database integration with proper constraint handling and RLS policies
+  - Modal integration with proper event handling and state management
+  - Consistent styling and UX patterns following established design system
+- **Type-Specific Features**:
+  - **Regular Envelopes**: Basic fields (name, category, initial balance)
+  - **Savings Envelopes**: Additional target amount and target date fields with progress calculation
+  - **Debt Envelopes**: APR and minimum payment fields with negative balance validation
+- **Form Validation**: Comprehensive client-side validation with real-time feedback
+- **Database Integration**: Proper envelope creation with type-specific constraints
+- **Testing**: Complete test suite covering all envelope types and validation scenarios
 
 ## Future Considerations
 

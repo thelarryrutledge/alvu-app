@@ -95,7 +95,7 @@
 ## Task 8: Envelope Management System
 
 - [x] Create envelopes list page with category grouping
-- [ ] Implement add envelope form with type selection
+- [x] Implement add envelope form with type selection
 - [ ] Create regular envelope configuration
 - [ ] Implement savings envelope with goal settings
 - [ ] Create debt envelope with balance/APR fields

@@ -4,6 +4,8 @@
 	import AppLayout from '$lib/components/AppLayout.svelte'
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 	import PageLoading from '$lib/components/PageLoading.svelte'
+	import Modal from '$lib/components/Modal.svelte'
+	import AddEnvelopeForm from '$lib/components/AddEnvelopeForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -17,6 +19,7 @@
 	let lastUpdated = new Date()
 	let hasError = false
 	let errorMessage = ''
+	let showAddModal = false
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -231,6 +234,21 @@
 		}
 	}
 	
+	// Handlers for add envelope modal
+	function handleAddEnvelope() {
+		showAddModal = true
+	}
+	
+	function handleAddSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showAddModal = false
+		// Refresh the envelopes list
+		loadEnvelopesData()
+	}
+	
+	function handleAddCancel() {
+		showAddModal = false
+	}
+	
 	// Load data on mount and when user changes
 	onMount(() => {
 		if ($user) {
@@ -296,6 +314,7 @@
 					</div>
 					<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
 						<button
+							on:click={handleAddEnvelope}
 							class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
 						>
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,6 +350,7 @@
 					<p class="mt-1 text-sm text-gray-500">Get started by creating your first envelope to organize your budget.</p>
 					<div class="mt-6">
 						<button
+							on:click={handleAddEnvelope}
 							class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
 						>
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -551,6 +571,7 @@
 								</div>
 								<div class="flex flex-col sm:flex-row gap-2">
 									<button
+										on:click={handleAddEnvelope}
 										class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
 									>
 										<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -715,5 +736,22 @@
 			{/if}
 		</div>
 		{/if}
+		
+		<!-- Add Envelope Modal -->
+		<Modal
+			bind:open={showAddModal}
+			size="xl"
+			variant="default"
+			title="Add Envelope"
+			showCloseButton={true}
+			closeOnBackdrop={false}
+			closeOnEscape={true}
+			on:close={handleAddCancel}
+		>
+			<AddEnvelopeForm
+				on:success={handleAddSuccess}
+				on:cancel={handleAddCancel}
+			/>
+		</Modal>
 	</AppLayout>
 </ProtectedRoute>
