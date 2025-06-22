@@ -54,7 +54,7 @@
 
 ## Task 5: Dashboard & Available Funds Display
 
-- [ ] Create dashboard page component
+- [x] Create dashboard page component
 - [ ] Implement prominent available funds display card
 - [ ] Create quick action buttons section (Add Income, Add Expense, Transfer, Allocate)
 - [ ] Add envelope overview with balances

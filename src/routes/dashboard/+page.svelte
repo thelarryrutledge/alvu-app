@@ -1,7 +1,100 @@
 <script lang="ts">
+	import { onMount } from 'svelte'
 	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 	import AppLayout from '$lib/components/AppLayout.svelte'
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 	import { user } from '$lib/stores/auth'
+	import { supabase } from '$lib/utils/supabase'
+	import type { Envelope, Transaction } from '$lib/types/database'
+	
+	// Dashboard data state
+	let loading = true
+	let availableFunds = 0
+	let totalEnvelopes = 0
+	let recentTransactionsCount = 0
+	let envelopes: Envelope[] = []
+	let recentTransactions: Transaction[] = []
+	let lastUpdated = new Date()
+	
+	// Load dashboard data
+	async function loadDashboardData() {
+		if (!$user) return
+		
+		loading = true
+		try {
+			// Fetch envelopes
+			const { data: envelopesData, error: envelopesError } = await supabase
+				.from('envelopes')
+				.select('*')
+				.eq('user_id', $user.id)
+				.order('created_at', { ascending: false })
+			
+			if (envelopesError) {
+				console.error('Error fetching envelopes:', envelopesError)
+			} else {
+				envelopes = envelopesData || []
+				totalEnvelopes = envelopes.length
+			}
+			
+			// Fetch recent transactions (last 5)
+			const { data: transactionsData, error: transactionsError } = await supabase
+				.from('transactions')
+				.select('*')
+				.eq('user_id', $user.id)
+				.order('created_at', { ascending: false })
+				.limit(5)
+			
+			if (transactionsError) {
+				console.error('Error fetching transactions:', transactionsError)
+			} else {
+				recentTransactions = transactionsData || []
+				recentTransactionsCount = recentTransactions.length
+			}
+			
+			// Calculate available funds (this would be from a dedicated available_funds calculation)
+			// For now, we'll use a placeholder calculation
+			availableFunds = calculateAvailableFunds()
+			
+			lastUpdated = new Date()
+		} catch (error) {
+			console.error('Error loading dashboard data:', error)
+		} finally {
+			loading = false
+		}
+	}
+	
+	// Calculate available funds (placeholder implementation)
+	function calculateAvailableFunds(): number {
+		// This would typically come from a database function or calculation
+		// For now, return 0 as we haven't implemented income/allocation logic yet
+		return 0
+	}
+	
+	// Refresh dashboard data
+	async function refreshData() {
+		await loadDashboardData()
+	}
+	
+	// Load data when component mounts
+	onMount(() => {
+		loadDashboardData()
+	})
+	
+	// Format currency
+	function formatCurrency(amount: number): string {
+		return new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD'
+		}).format(amount)
+	}
+	
+	// Format date
+	function formatDate(date: Date): string {
+		return date.toLocaleTimeString('en-US', {
+			hour: '2-digit',
+			minute: '2-digit'
+		})
+	}
 </script>
 
 <ProtectedRoute>
@@ -18,14 +111,18 @@
 						{/if}
 					</div>
 					<div class="flex items-center space-x-3">
-						<button class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<button
+							on:click={refreshData}
+							disabled={loading}
+							class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							<svg class="w-4 h-4 mr-2 {loading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
 							</svg>
-							Refresh
+							{loading ? 'Refreshing...' : 'Refresh'}
 						</button>
 						<div class="text-sm text-gray-500">
-							Last updated: {new Date().toLocaleTimeString()}
+							Last updated: {formatDate(lastUpdated)}
 						</div>
 					</div>
 				</div>
@@ -54,7 +151,13 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Available Funds</dt>
-									<dd class="text-lg font-medium text-gray-900">$0.00</dd>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if loading}
+											<div class="animate-pulse bg-gray-200 h-6 w-20 rounded"></div>
+										{:else}
+											{formatCurrency(availableFunds)}
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
@@ -75,7 +178,13 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Total Envelopes</dt>
-									<dd class="text-lg font-medium text-gray-900">0</dd>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if loading}
+											<div class="animate-pulse bg-gray-200 h-6 w-8 rounded"></div>
+										{:else}
+											{totalEnvelopes}
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
@@ -96,7 +205,13 @@
 							<div class="ml-5 w-0 flex-1">
 								<dl>
 									<dt class="text-sm font-medium text-gray-500 truncate">Recent Transactions</dt>
-									<dd class="text-lg font-medium text-gray-900">0</dd>
+									<dd class="text-lg font-medium text-gray-900">
+										{#if loading}
+											<div class="animate-pulse bg-gray-200 h-6 w-8 rounded"></div>
+										{:else}
+											{recentTransactionsCount}
+										{/if}
+									</dd>
 								</dl>
 							</div>
 						</div>
@@ -160,13 +275,77 @@
 								<p class="text-sm text-gray-600">Your latest transactions and updates</p>
 							</div>
 							<div class="p-6">
-								<div class="text-center py-8">
-									<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-									</svg>
-									<h4 class="mt-2 text-sm font-medium text-gray-900">No recent activity</h4>
-									<p class="mt-1 text-sm text-gray-500">Get started by adding your first transaction</p>
-								</div>
+								{#if loading}
+									<div class="space-y-3">
+										{#each Array(3) as _}
+											<div class="animate-pulse flex items-center space-x-3">
+												<div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+												<div class="flex-1 space-y-2">
+													<div class="h-4 bg-gray-200 rounded w-3/4"></div>
+													<div class="h-3 bg-gray-200 rounded w-1/2"></div>
+												</div>
+												<div class="h-4 bg-gray-200 rounded w-16"></div>
+											</div>
+										{/each}
+									</div>
+								{:else if recentTransactions.length > 0}
+									<div class="space-y-3">
+										{#each recentTransactions as transaction}
+											<div class="flex items-center justify-between py-2">
+												<div class="flex items-center space-x-3">
+													<div class="w-8 h-8 rounded-full flex items-center justify-center {
+														transaction.type === 'income' ? 'bg-green-100 text-green-600' :
+														transaction.type === 'expense' ? 'bg-red-100 text-red-600' :
+														transaction.type === 'transfer' ? 'bg-blue-100 text-blue-600' :
+														'bg-purple-100 text-purple-600'
+													}">
+														{#if transaction.type === 'income'}
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+															</svg>
+														{:else if transaction.type === 'expense'}
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+															</svg>
+														{:else if transaction.type === 'transfer'}
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+															</svg>
+														{:else}
+															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+															</svg>
+														{/if}
+													</div>
+													<div>
+														<p class="text-sm font-medium text-gray-900">{transaction.description}</p>
+														<p class="text-xs text-gray-500 capitalize">{transaction.type}</p>
+													</div>
+												</div>
+												<div class="text-sm font-medium {
+													transaction.type === 'income' ? 'text-green-600' :
+													transaction.type === 'expense' ? 'text-red-600' :
+													'text-gray-900'
+												}">
+													{transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
+												</div>
+											</div>
+										{/each}
+									</div>
+									<div class="mt-4 pt-4 border-t border-gray-200">
+										<a href="/transactions" class="text-sm text-blue-600 hover:text-blue-500 font-medium">
+											View all transactions →
+										</a>
+									</div>
+								{:else}
+									<div class="text-center py-8">
+										<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+										</svg>
+										<h4 class="mt-2 text-sm font-medium text-gray-900">No recent activity</h4>
+										<p class="mt-1 text-sm text-gray-500">Get started by adding your first transaction</p>
+									</div>
+								{/if}
 							</div>
 						</div>
 					</section>
