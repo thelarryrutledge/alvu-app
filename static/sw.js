@@ -1,10 +1,15 @@
-const CACHE_NAME = 'alvu-v1'
+// Cache version updated by deployment script
+const CACHE_VERSION = 1735000000000
+const CACHE_NAME = `alvu-v${CACHE_VERSION}`
 const STATIC_CACHE_URLS = [
 	'/',
 	'/manifest.json',
 	'/favicon.png'
 	// Add other static assets as they're created
 ]
+
+// Maximum cache age in milliseconds (24 hours)
+const MAX_CACHE_AGE = 24 * 60 * 60 * 1000
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -48,7 +53,8 @@ self.addEventListener('activate', (event) => {
 			.then((cacheNames) => {
 				return Promise.all(
 					cacheNames.map((cacheName) => {
-						if (cacheName !== CACHE_NAME) {
+						// Delete all old alvu caches
+						if (cacheName.startsWith('alvu-v') && cacheName !== CACHE_NAME) {
 							console.log('Service Worker: Deleting old cache', cacheName)
 							return caches.delete(cacheName)
 						}
@@ -57,6 +63,7 @@ self.addEventListener('activate', (event) => {
 			})
 			.then(() => {
 				console.log('Service Worker: Activation complete')
+				// Force all clients to use the new service worker
 				return self.clients.claim()
 			})
 	)
@@ -87,38 +94,64 @@ self.addEventListener('fetch', (event) => {
 	}
 
 	event.respondWith(
-		caches.match(event.request).then((cachedResponse) => {
-			// Return cached version if available
+		caches.match(event.request).then(async (cachedResponse) => {
+			// Check if cached response is still fresh
 			if (cachedResponse) {
+				const cachedTime = cachedResponse.headers.get('sw-cache-time')
+				if (cachedTime) {
+					const age = Date.now() - parseInt(cachedTime)
+					if (age > MAX_CACHE_AGE) {
+						console.log('Service Worker: Cache expired, fetching fresh content')
+						// Cache expired, fetch fresh content
+						return fetchAndCache(event.request)
+					}
+				}
 				return cachedResponse
 			}
 
-			// Otherwise, fetch from network
-			return fetch(event.request)
-				.then((response) => {
-					// Don't cache non-successful responses
-					if (!response || response.status !== 200 || response.type !== 'basic') {
-						return response
-					}
-
-					// Clone the response for caching
-					const responseToCache = response.clone()
-
-					caches.open(CACHE_NAME).then((cache) => {
-						cache.put(event.request, responseToCache)
-					})
-
-					return response
-				})
-				.catch(() => {
-					// If network fails and no cache, return offline page
-					if (event.request.destination === 'document') {
-						return caches.match('/')
-					}
-				})
+			// No cache, fetch from network
+			return fetchAndCache(event.request)
 		})
 	)
 })
+
+// Helper function to fetch and cache responses
+async function fetchAndCache(request) {
+	try {
+		const response = await fetch(request)
+		
+		// Don't cache non-successful responses
+		if (!response || response.status !== 200 || response.type !== 'basic') {
+			return response
+		}
+
+		// Clone the response for caching
+		const responseToCache = response.clone()
+		
+		// Add timestamp header for cache expiration
+		const headers = new Headers(responseToCache.headers)
+		headers.set('sw-cache-time', Date.now().toString())
+		
+		const cachedResponse = new Response(responseToCache.body, {
+			status: responseToCache.status,
+			statusText: responseToCache.statusText,
+			headers: headers
+		})
+
+		// Cache the response
+		const cache = await caches.open(CACHE_NAME)
+		await cache.put(request, cachedResponse)
+
+		return response
+	} catch (error) {
+		console.error('Service Worker: Fetch failed', error)
+		// If network fails and no cache, return offline page
+		if (request.destination === 'document') {
+			return caches.match('/')
+		}
+		throw error
+	}
+}
 
 // Background sync for offline transactions (future enhancement)
 self.addEventListener('sync', (event) => {
