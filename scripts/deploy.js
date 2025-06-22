@@ -54,7 +54,7 @@ function hasUncommittedChanges() {
 	try {
 		const status = execSync('git status --porcelain', { encoding: 'utf8' })
 		return status.trim().length > 0
-	} catch (error) {
+	} catch {
 		console.log('⚠️  Not in a git repository or git not available')
 		return false
 	}
@@ -64,7 +64,7 @@ function hasUncommittedChanges() {
 function getCurrentBranch() {
 	try {
 		return execSync('git branch --show-current', { encoding: 'utf8' }).trim()
-	} catch (error) {
+	} catch {
 		return 'main'
 	}
 }

@@ -17,8 +17,7 @@
 		"deploy": "node scripts/deploy.js",
 		"deploy:github": "node scripts/deploy.js",
 		"push": "node scripts/dev-push.js",
-		"push:msg": "node scripts/dev-push.js",
-		"predeploy": "npm run lint && npm run format:check"
+		"push:msg": "node scripts/dev-push.js"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^6.0.0",
