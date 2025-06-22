@@ -46,8 +46,8 @@
 - [x] Create responsive sidebar for desktop
 - [x] Implement bottom navigation for mobile
 - [x] Create dashboard layout structure
-- [ ] Add loading spinner components
-- [ ] Create modal component system
+- [x] Add loading spinner components
+- [x] Create modal component system
 - [ ] Implement toast notification system
 - [ ] Create form input components
 - [ ] Test responsive behavior across devices
