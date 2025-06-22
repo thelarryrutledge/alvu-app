@@ -107,9 +107,27 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 ## Next Development Phase
 
 **Current**: Task 8 - Envelope Management System
-- Create envelopes list page with category grouping
+- ✅ Create envelopes list page with category grouping - COMPLETED
 - Implement envelope CRUD operations with type-specific validation
 - Add progress tracking for savings goals and debt payoff
+
+### Task 8.1 Implementation Notes - Envelopes List Page
+- **Envelopes List Page**: Complete implementation with category grouping functionality
+  - Full-featured page following established patterns from categories page
+  - Comprehensive data loading with envelopes and categories from Supabase
+  - Category grouping with visual organization and color coding
+  - Advanced filtering: search by name, filter by type (regular/savings/debt), filter by category
+  - Multiple sorting options: by category, name, balance, or creation date
+  - Summary statistics cards showing total envelopes, regular balance, savings balance, and debt balance
+  - Empty state handling for new users with call-to-action buttons
+  - Responsive design with mobile-first approach
+  - Progress indicators for savings envelopes with target amounts
+  - Type-specific information display (APR for debt, target dates for savings)
+  - Error handling and loading states throughout
+  - Integration with existing auth, toast, and modal systems
+- **Database Integration**: Proper joins with categories table for grouping
+- **UI Components**: Reusable patterns consistent with existing pages
+- **Testing**: Comprehensive test suite covering all functionality
 
 ## Future Considerations
 
