@@ -109,6 +109,9 @@
 		
 		// Update suggestions
 		suggestions = getValidationSuggestions(formData)
+		
+		// Force reactive updates for calculations
+		formData = { ...formData }
 	}
 	
 	// Calculate next expected date based on frequency

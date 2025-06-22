@@ -287,6 +287,19 @@
 	$: monthlyEstimate = calculateMonthlyEstimate()
 	$: filteredIncomeSources = filterIncomeSources(incomeSources)
 	$: hasActiveFilters = searchQuery.trim() !== '' || statusFilter !== 'all' || frequencyFilter !== 'all' || sortBy !== 'created' || sortOrder !== 'desc'
+	
+	// Debug reactive filtering
+	$: {
+		console.log('Filter state changed:', {
+			searchQuery,
+			statusFilter,
+			frequencyFilter,
+			sortBy,
+			sortOrder,
+			totalSources: incomeSources.length,
+			filteredCount: filteredIncomeSources.length
+		})
+	}
 </script>
 
 <ProtectedRoute>
