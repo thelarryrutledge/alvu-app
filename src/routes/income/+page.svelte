@@ -10,6 +10,7 @@
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
+	import { modalHelpers } from '$lib/stores/modal'
 	import type { IncomeSource, IncomeFrequency } from '$lib/types/database'
 	
 	// State
@@ -135,8 +136,41 @@
 		showEditModal = true
 	}
 	
-	function handleDeleteIncomeSource(incomeSource: IncomeSource) {
-		toastHelpers.info(`Delete "${incomeSource.name}" feature coming soon!`)
+	async function handleDeleteIncomeSource(incomeSource: IncomeSource) {
+		modalHelpers.confirm({
+			title: 'Delete Income Source',
+			message: `Are you sure you want to delete "${incomeSource.name}"? This action cannot be undone.`,
+			variant: 'danger',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			onConfirm: async () => {
+				await deleteIncomeSource(incomeSource)
+			}
+		})
+	}
+	
+	async function deleteIncomeSource(incomeSource: IncomeSource) {
+		if (!$user) return
+		
+		try {
+			const { error } = await supabase
+				.from('income_sources')
+				.delete()
+				.eq('id', incomeSource.id)
+				.eq('user_id', $user.id) // Security check
+			
+			if (error) {
+				console.error('Error deleting income source:', error)
+				toastHelpers.error('Failed to delete income source. Please try again.')
+			} else {
+				toastHelpers.success(`"${incomeSource.name}" has been deleted successfully`)
+				// Refresh the income sources list
+				await loadIncomeSourcesData()
+			}
+		} catch (error) {
+			console.error('Error deleting income source:', error)
+			toastHelpers.error('Failed to delete income source. Please try again.')
+		}
 	}
 	
 	// Modal handlers
