@@ -24,6 +24,13 @@
 	let showEditModal = false
 	let editingIncomeSource: IncomeSource | null = null
 	
+	// Filtering and search state
+	let searchQuery = ''
+	let statusFilter: 'all' | 'active' | 'inactive' = 'all'
+	let frequencyFilter: 'all' | IncomeFrequency = 'all'
+	let sortBy: 'name' | 'amount' | 'frequency' | 'created' = 'created'
+	let sortOrder: 'asc' | 'desc' = 'desc'
+	
 	// Load income sources
 	async function loadIncomeSourcesData() {
 		if (!$user) return
@@ -126,6 +133,78 @@
 			}, 0)
 	}
 	
+	// Filter and search functions
+	function filterIncomeSources(sources: IncomeSource[]): IncomeSource[] {
+		let filtered = sources
+		
+		// Apply search filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase().trim()
+			filtered = filtered.filter(source =>
+				source.name.toLowerCase().includes(query) ||
+				(source.description && source.description.toLowerCase().includes(query))
+			)
+		}
+		
+		// Apply status filter
+		if (statusFilter !== 'all') {
+			filtered = filtered.filter(source =>
+				statusFilter === 'active' ? source.is_active : !source.is_active
+			)
+		}
+		
+		// Apply frequency filter
+		if (frequencyFilter !== 'all') {
+			filtered = filtered.filter(source => source.frequency === frequencyFilter)
+		}
+		
+		// Apply sorting
+		filtered.sort((a, b) => {
+			let comparison = 0
+			
+			switch (sortBy) {
+				case 'name':
+					comparison = a.name.localeCompare(b.name)
+					break
+				case 'amount':
+					comparison = a.amount - b.amount
+					break
+				case 'frequency':
+					const frequencyOrder = { 'weekly': 1, 'bi-weekly': 2, 'semi-monthly': 3, 'monthly': 4, 'custom': 5 }
+					comparison = frequencyOrder[a.frequency] - frequencyOrder[b.frequency]
+					break
+				case 'created':
+					comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+					break
+			}
+			
+			return sortOrder === 'asc' ? comparison : -comparison
+		})
+		
+		return filtered
+	}
+	
+	// Clear all filters
+	function clearFilters() {
+		searchQuery = ''
+		statusFilter = 'all'
+		frequencyFilter = 'all'
+		sortBy = 'created'
+		sortOrder = 'desc'
+	}
+	
+	// Get filter summary text
+	function getFilterSummary(filtered: IncomeSource[]): string {
+		const total = incomeSources.length
+		const showing = filtered.length
+		
+		if (total === showing) {
+			return `Showing all ${total} income source${total === 1 ? '' : 's'}`
+		} else {
+			return `Showing ${showing} of ${total} income source${total === 1 ? '' : 's'}`
+		}
+	}
+	
 	// Handlers
 	function handleAddIncomeSource() {
 		showAddModal = true
@@ -206,6 +285,8 @@
 	$: isNewUser = !loading && incomeSources.length === 0
 	$: activeIncomeSources = incomeSources.filter(source => source.is_active)
 	$: monthlyEstimate = calculateMonthlyEstimate()
+	$: filteredIncomeSources = filterIncomeSources(incomeSources)
+	$: hasActiveFilters = searchQuery.trim() !== '' || statusFilter !== 'all' || frequencyFilter !== 'all' || sortBy !== 'created' || sortOrder !== 'desc'
 </script>
 
 <ProtectedRoute>
@@ -408,6 +489,135 @@
 						</div>
 					</section>
 
+					<!-- Search and Filter Controls -->
+					<section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+						<div class="space-y-4">
+							<!-- Search Bar -->
+							<div class="flex flex-col sm:flex-row gap-4">
+								<div class="flex-1">
+									<label for="search" class="sr-only">Search income sources</label>
+									<div class="relative">
+										<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+											<svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+											</svg>
+										</div>
+										<input
+											id="search"
+											bind:value={searchQuery}
+											type="text"
+											placeholder="Search by name or description..."
+											class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+										/>
+										{#if searchQuery}
+											<button
+												on:click={() => searchQuery = ''}
+												class="absolute inset-y-0 right-0 pr-3 flex items-center"
+											>
+												<svg class="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+												</svg>
+											</button>
+										{/if}
+									</div>
+								</div>
+								
+								<!-- Quick Filter Buttons -->
+								<div class="flex items-center space-x-2">
+									<button
+										on:click={() => statusFilter = statusFilter === 'active' ? 'all' : 'active'}
+										class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {statusFilter === 'active' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'}"
+									>
+										<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+										Active Only
+									</button>
+									<button
+										on:click={() => statusFilter = statusFilter === 'inactive' ? 'all' : 'inactive'}
+										class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {statusFilter === 'inactive' ? 'bg-gray-100 text-gray-800 border border-gray-300' : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'}"
+									>
+										<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+										Inactive Only
+									</button>
+								</div>
+							</div>
+							
+							<!-- Advanced Filters -->
+							<div class="flex flex-col sm:flex-row gap-4">
+								<!-- Frequency Filter -->
+								<div class="flex-1">
+									<label for="frequency-filter" class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+									<select
+										id="frequency-filter"
+										bind:value={frequencyFilter}
+										class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+									>
+										<option value="all">All Frequencies</option>
+										<option value="weekly">Weekly</option>
+										<option value="bi-weekly">Bi-weekly</option>
+										<option value="semi-monthly">Semi-monthly</option>
+										<option value="monthly">Monthly</option>
+										<option value="custom">Custom</option>
+									</select>
+								</div>
+								
+								<!-- Sort By -->
+								<div class="flex-1">
+									<label for="sort-by" class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+									<select
+										id="sort-by"
+										bind:value={sortBy}
+										class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+									>
+										<option value="created">Date Created</option>
+										<option value="name">Name</option>
+										<option value="amount">Amount</option>
+										<option value="frequency">Frequency</option>
+									</select>
+								</div>
+								
+								<!-- Sort Order -->
+								<div class="flex-1">
+									<label for="sort-order" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+									<select
+										id="sort-order"
+										bind:value={sortOrder}
+										class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+									>
+										<option value="desc">Descending</option>
+										<option value="asc">Ascending</option>
+									</select>
+								</div>
+								
+								<!-- Clear Filters -->
+								{#if hasActiveFilters}
+									<div class="flex items-end">
+										<button
+											on:click={clearFilters}
+											class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+										>
+											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+											</svg>
+											Clear
+										</button>
+									</div>
+								{/if}
+							</div>
+							
+							<!-- Filter Summary -->
+							<div class="flex items-center justify-between text-sm text-gray-600 pt-2 border-t border-gray-200">
+								<span>{getFilterSummary(filteredIncomeSources)}</span>
+								{#if hasActiveFilters}
+									<span class="text-blue-600 font-medium">Filters applied</span>
+								{/if}
+							</div>
+						</div>
+					</section>
+
 					<!-- Income Sources List -->
 					<section>
 						<div class="mb-6">
@@ -446,9 +656,9 @@
 									</div>
 								{/each}
 							</div>
-						{:else if incomeSources.length > 0}
+						{:else if filteredIncomeSources.length > 0}
 							<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-								{#each incomeSources as incomeSource}
+								{#each filteredIncomeSources as incomeSource}
 									<!-- Enhanced Income Source Display Card -->
 									<div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden {!incomeSource.is_active ? 'opacity-75' : ''}">
 										<!-- Card Header -->
@@ -574,7 +784,45 @@
 									</div>
 								{/each}
 							</div>
+						{:else if incomeSources.length > 0}
+							<!-- No Results Found State -->
+							<div class="bg-white rounded-lg shadow p-8 text-center">
+								<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+								</svg>
+								<h3 class="text-lg font-medium text-gray-900 mb-2">No income sources found</h3>
+								<p class="text-gray-500 mb-4">
+									{#if hasActiveFilters}
+										No income sources match your current filters. Try adjusting your search or filter criteria.
+									{:else}
+										Your search didn't return any results.
+									{/if}
+								</p>
+								<div class="flex flex-col sm:flex-row gap-3 justify-center">
+									{#if hasActiveFilters}
+										<button
+											on:click={clearFilters}
+											class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+										>
+											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+											</svg>
+											Clear Filters
+										</button>
+									{/if}
+									<button
+										on:click={handleAddIncomeSource}
+										class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
+									>
+										<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+										</svg>
+										Add Income Source
+									</button>
+								</div>
+							</div>
 						{:else}
+							<!-- Empty State -->
 							<div class="bg-white rounded-lg shadow p-8 text-center">
 								<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
