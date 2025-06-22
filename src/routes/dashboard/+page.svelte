@@ -4,6 +4,7 @@
 	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 	import AppLayout from '$lib/components/AppLayout.svelte'
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
+	import PageLoading from '$lib/components/PageLoading.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -11,6 +12,11 @@
 	
 	// Dashboard data state
 	let loading = true
+	let initialLoad = true
+	let loadingEnvelopes = false
+	let loadingTransactions = false
+	let loadingFunds = false
+	let loadingRefresh = false
 	let availableFunds = 0
 	let totalEnvelopes = 0
 	let recentTransactionsCount = 0
@@ -22,13 +28,45 @@
 	let refreshCountdown = 0
 	let countdownInterval: NodeJS.Timeout | null = null
 	
+	// Loading progress tracking
+	let loadingProgress = 0
+	let loadingSteps = ['Initializing...', 'Loading envelopes...', 'Loading transactions...', 'Calculating funds...', 'Finalizing...']
+	let currentLoadingStep = 0
+	let loadingMessage = ''
+	
+	// Error states
+	let hasError = false
+	let errorMessage = ''
+	
 	// Load dashboard data
-	async function loadDashboardData() {
+	async function loadDashboardData(isRefresh = false) {
 		if (!$user) return
 		
-		loading = true
+		// Set loading states
+		if (isRefresh) {
+			loadingRefresh = true
+		} else {
+			loading = true
+		}
+		
+		loadingProgress = 0
+		currentLoadingStep = 0
+		hasError = false
+		errorMessage = ''
+		
 		try {
-			// Fetch envelopes
+			// Step 1: Initialize
+			currentLoadingStep = 0
+			loadingProgress = 10
+			loadingMessage = loadingSteps[0]
+			await new Promise(resolve => setTimeout(resolve, 100)) // Brief pause for UX
+			
+			// Step 2: Fetch envelopes
+			currentLoadingStep = 1
+			loadingProgress = 25
+			loadingMessage = loadingSteps[1]
+			loadingEnvelopes = true
+			
 			const { data: envelopesData, error: envelopesError } = await supabase
 				.from('envelopes')
 				.select('*')
@@ -37,12 +75,25 @@
 			
 			if (envelopesError) {
 				console.error('Error fetching envelopes:', envelopesError)
+				if (!isRefresh) {
+					hasError = true
+					errorMessage = 'Failed to load envelopes'
+				}
+				toastHelpers.error('Failed to load envelopes. Some data may be incomplete.')
 			} else {
 				envelopes = envelopesData || []
 				totalEnvelopes = envelopes.length
 			}
 			
-			// Fetch recent transactions (last 5)
+			loadingEnvelopes = false
+			loadingProgress = 50
+			
+			// Step 3: Fetch recent transactions
+			currentLoadingStep = 2
+			loadingProgress = 60
+			loadingMessage = loadingSteps[2]
+			loadingTransactions = true
+			
 			const { data: transactionsData, error: transactionsError } = await supabase
 				.from('transactions')
 				.select('*')
@@ -52,21 +103,58 @@
 			
 			if (transactionsError) {
 				console.error('Error fetching transactions:', transactionsError)
+				if (!isRefresh) {
+					hasError = true
+					errorMessage = 'Failed to load transactions'
+				}
+				toastHelpers.error('Failed to load recent transactions. Some data may be incomplete.')
 			} else {
 				recentTransactions = transactionsData || []
 				recentTransactionsCount = recentTransactions.length
 			}
 			
+			loadingTransactions = false
+			loadingProgress = 80
+			
+			// Step 4: Calculate available funds
+			currentLoadingStep = 3
+			loadingProgress = 90
+			loadingMessage = loadingSteps[3]
+			loadingFunds = true
+			
 			// Calculate available funds (this would be from a dedicated available_funds calculation)
 			// For now, we'll use a placeholder calculation
 			availableFunds = calculateAvailableFunds()
 			
+			loadingFunds = false
+			
+			// Step 5: Finalize
+			currentLoadingStep = 4
+			loadingProgress = 100
+			loadingMessage = loadingSteps[4]
+			
 			lastUpdated = new Date()
+			
+			// Brief pause to show completion
+			await new Promise(resolve => setTimeout(resolve, 200))
+			
 		} catch (error) {
 			console.error('Error loading dashboard data:', error)
-			toastHelpers.error('Failed to load dashboard data. Please try again.')
+			hasError = true
+			errorMessage = 'Failed to load dashboard data'
+			if (!isRefresh) {
+				toastHelpers.error('Failed to load dashboard data. Please try again.')
+			}
 		} finally {
 			loading = false
+			initialLoad = false
+			loadingRefresh = false
+			loadingEnvelopes = false
+			loadingTransactions = false
+			loadingFunds = false
+			loadingProgress = 0
+			currentLoadingStep = 0
+			loadingMessage = ''
 		}
 	}
 	
@@ -79,7 +167,7 @@
 	
 	// Refresh dashboard data
 	async function refreshData() {
-		await loadDashboardData()
+		await loadDashboardData(true)
 		resetRefreshCountdown()
 		toastHelpers.success('Dashboard data refreshed successfully')
 	}
@@ -217,53 +305,249 @@
 		// Future: open allocation modal or goto('/allocate')
 	}
 	
+	// Progress calculation helpers
+	function calculateSavingsProgress(envelope: Envelope): { percentage: number; status: string; timeToGoal?: string } {
+		if (!envelope.target_amount || envelope.target_amount <= 0) {
+			return { percentage: 0, status: 'no-goal' }
+		}
+		
+		const percentage = Math.min(100, Math.max(0, (envelope.balance / envelope.target_amount) * 100))
+		let status = 'in-progress'
+		
+		if (percentage >= 100) {
+			status = 'completed'
+		} else if (percentage >= 75) {
+			status = 'near-completion'
+		} else if (percentage >= 50) {
+			status = 'halfway'
+		} else if (percentage >= 25) {
+			status = 'quarter'
+		} else {
+			status = 'starting'
+		}
+		
+		// Calculate estimated time to goal (simplified calculation)
+		let timeToGoal = undefined
+		if (percentage > 0 && percentage < 100) {
+			const remaining = envelope.target_amount - envelope.balance
+			// Assume average monthly contribution based on current progress
+			// This is a simplified calculation - in real app would use transaction history
+			const monthlyContribution = envelope.balance / 3 // Assume 3 months of data
+			if (monthlyContribution > 0) {
+				const monthsToGoal = Math.ceil(remaining / monthlyContribution)
+				if (monthsToGoal <= 12) {
+					timeToGoal = `${monthsToGoal} month${monthsToGoal === 1 ? '' : 's'}`
+				} else {
+					const yearsToGoal = Math.round(monthsToGoal / 12 * 10) / 10
+					timeToGoal = `${yearsToGoal} year${yearsToGoal === 1 ? '' : 's'}`
+				}
+			}
+		}
+		
+		return { percentage, status, timeToGoal }
+	}
+	
+	function calculateDebtProgress(envelope: Envelope): { percentage: number; status: string; payoffProjection?: string } {
+		if (!envelope.target_amount || envelope.target_amount >= 0) {
+			return { percentage: 0, status: 'no-debt' }
+		}
+		
+		const totalDebt = Math.abs(envelope.target_amount)
+		const currentDebt = Math.abs(envelope.balance)
+		const paidOff = totalDebt - currentDebt
+		const percentage = Math.min(100, Math.max(0, (paidOff / totalDebt) * 100))
+		
+		let status = 'paying-down'
+		
+		if (percentage >= 100) {
+			status = 'paid-off'
+		} else if (percentage >= 75) {
+			status = 'almost-done'
+		} else if (percentage >= 50) {
+			status = 'halfway-paid'
+		} else if (percentage >= 25) {
+			status = 'making-progress'
+		} else {
+			status = 'starting-payoff'
+		}
+		
+		// Calculate payoff projection (simplified)
+		let payoffProjection = undefined
+		if (percentage > 0 && percentage < 100) {
+			// Assume average monthly payment based on progress
+			const monthlyPayment = paidOff / 3 // Assume 3 months of data
+			if (monthlyPayment > 0) {
+				const monthsToPayoff = Math.ceil(currentDebt / monthlyPayment)
+				if (monthsToPayoff <= 12) {
+					payoffProjection = `${monthsToPayoff} month${monthsToPayoff === 1 ? '' : 's'}`
+				} else {
+					const yearsToPayoff = Math.round(monthsToPayoff / 12 * 10) / 10
+					payoffProjection = `${yearsToPayoff} year${yearsToPayoff === 1 ? '' : 's'}`
+				}
+			}
+		}
+		
+		return { percentage, status, payoffProjection }
+	}
+	
+	function getProgressBarColor(type: string, status: string): string {
+		if (type === 'savings') {
+			switch (status) {
+				case 'completed': return 'bg-green-600'
+				case 'near-completion': return 'bg-green-500'
+				case 'halfway': return 'bg-green-400'
+				case 'quarter': return 'bg-yellow-400'
+				case 'starting': return 'bg-yellow-300'
+				default: return 'bg-gray-300'
+			}
+		} else if (type === 'debt') {
+			switch (status) {
+				case 'paid-off': return 'bg-green-600'
+				case 'almost-done': return 'bg-green-500'
+				case 'halfway-paid': return 'bg-blue-400'
+				case 'making-progress': return 'bg-blue-300'
+				case 'starting-payoff': return 'bg-red-300'
+				default: return 'bg-red-400'
+			}
+		}
+		return 'bg-gray-300'
+	}
+	
+	function getProgressMessage(type: string, status: string, percentage: number): string {
+		if (type === 'savings') {
+			switch (status) {
+				case 'completed': return '🎉 Goal achieved!'
+				case 'near-completion': return '🚀 Almost there!'
+				case 'halfway': return '💪 Halfway to your goal'
+				case 'quarter': return '📈 Making good progress'
+				case 'starting': return '🌱 Great start!'
+				default: return 'Set a goal to track progress'
+			}
+		} else if (type === 'debt') {
+			switch (status) {
+				case 'paid-off': return '🎉 Debt paid off!'
+				case 'almost-done': return '🏁 Almost debt-free!'
+				case 'halfway-paid': return '💪 Halfway paid off'
+				case 'making-progress': return '📉 Making progress'
+				case 'starting-payoff': return '🎯 Starting payoff journey'
+				default: return 'Track your debt payoff'
+			}
+		}
+		return ''
+	}
+
 	// Check if user is new (no envelopes and no transactions)
 	$: isNewUser = !loading && totalEnvelopes === 0 && recentTransactionsCount === 0
 </script>
 
 <ProtectedRoute>
 	<AppLayout title="Dashboard - Alvu">
+		<!-- Initial Loading Screen -->
+		{#if initialLoad && loading}
+			<PageLoading
+				title="Loading Dashboard"
+				subtitle="Fetching your financial data..."
+				variant="spinner"
+			/>
+		{:else}
 		<!-- Dashboard Container -->
 		<div class="dashboard-container">
-			<!-- Page Header Section -->
-			<header class="dashboard-header mb-8">
-				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-					<div class="mb-4 sm:mb-0">
-						<h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-						{#if $user}
-							<p class="text-gray-600 mt-1">Welcome back, {$user.user_metadata?.first_name || $user.email}!</p>
-						{/if}
+			<!-- Loading Progress Bar -->
+			{#if loading && !initialLoad}
+				<div class="fixed top-0 left-0 right-0 z-50">
+					<div class="bg-blue-600 h-1 transition-all duration-300 ease-out" style="width: {loadingProgress}%"></div>
+				</div>
+				<div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+					<div class="flex items-center justify-between">
+						<div class="flex items-center space-x-3">
+							<LoadingSpinner size="sm" color="primary" />
+							<span class="text-sm font-medium text-blue-900">
+								{loadingMessage || loadingSteps[currentLoadingStep] || 'Loading...'}
+							</span>
+						</div>
+						<div class="text-sm text-blue-600">
+							{loadingProgress}%
+						</div>
 					</div>
-					<div class="flex items-center space-x-3">
-						<!-- Auto-refresh toggle -->
-						<button
-							on:click={toggleAutoRefresh}
-							class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md {autoRefreshEnabled ? 'text-green-700 bg-green-50 border-green-300' : 'text-gray-700 bg-white'} hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-						>
-							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-							</svg>
-							Auto-refresh {autoRefreshEnabled ? 'ON' : 'OFF'}
-						</button>
-						
-						<!-- Manual refresh button -->
+					<div class="mt-2 w-full bg-blue-200 rounded-full h-2">
+						<div
+							class="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+							style="width: {loadingProgress}%"
+						></div>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Error State -->
+			{#if hasError && !loading}
+				<div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+					<div class="flex items-center">
+						<svg class="w-5 h-5 text-red-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+						<div class="flex-1">
+							<h3 class="text-sm font-medium text-red-800">
+								{errorMessage || 'Something went wrong'}
+							</h3>
+							<p class="text-sm text-red-600 mt-1">
+								Please try refreshing the page or contact support if the problem persists.
+							</p>
+						</div>
 						<button
 							on:click={refreshData}
-							disabled={loading}
-							class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+							class="ml-4 inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
 						>
-							<svg class="w-4 h-4 mr-2 {loading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-							</svg>
-							{loading ? 'Refreshing...' : 'Refresh'}
+							Try Again
 						</button>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Page Header Section -->
+			<header class="dashboard-header mb-6 sm:mb-8">
+				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<div class="flex-1 min-w-0">
+						<h1 class="text-2xl sm:text-3xl font-bold text-gray-900 truncate">Dashboard</h1>
+						{#if $user}
+							<p class="text-gray-600 mt-1 text-sm sm:text-base truncate">Welcome back, {$user.user_metadata?.first_name || $user.email}!</p>
+						{/if}
+					</div>
+					<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+						<!-- Mobile-first responsive controls -->
+						<div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+							<!-- Auto-refresh toggle -->
+							<button
+								on:click={toggleAutoRefresh}
+								class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md {autoRefreshEnabled ? 'text-green-700 bg-green-50 border-green-300' : 'text-gray-700 bg-white'} hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+							>
+								<svg class="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
+								<span class="hidden sm:inline">Auto-refresh {autoRefreshEnabled ? 'ON' : 'OFF'}</span>
+								<span class="sm:hidden">Auto {autoRefreshEnabled ? 'ON' : 'OFF'}</span>
+							</button>
+							
+							<!-- Manual refresh button -->
+							<button
+								on:click={refreshData}
+								disabled={loading || loadingRefresh}
+								class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-xs sm:text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+							>
+								<svg class="w-4 h-4 mr-1 sm:mr-2 {(loading || loadingRefresh) ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+								</svg>
+								<span class="hidden sm:inline">{(loading || loadingRefresh) ? 'Refreshing...' : 'Refresh'}</span>
+								<span class="sm:hidden">{(loading || loadingRefresh) ? '...' : 'Refresh'}</span>
+							</button>
+						</div>
 						
-						<!-- Status display -->
-						<div class="text-sm text-gray-500">
-							<div>Last updated: {formatDate(lastUpdated)}</div>
+						<!-- Status display - responsive -->
+						<div class="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
+							<div class="truncate">Last updated: {formatDate(lastUpdated)}</div>
 							{#if autoRefreshEnabled && refreshCountdown > 0}
-								<div class="text-xs text-green-600">
-									Next refresh: {formatCountdown(refreshCountdown)}
+								<div class="text-xs text-green-600 truncate">
+									<span class="hidden sm:inline">Next refresh: {formatCountdown(refreshCountdown)}</span>
+									<span class="sm:hidden">{formatCountdown(refreshCountdown)}</span>
 								</div>
 							{/if}
 						</div>
@@ -526,8 +810,11 @@
 								</div>
 								<h2 class="text-lg font-medium text-green-900 mb-2">Available to Allocate</h2>
 								<div class="text-4xl md:text-5xl font-bold text-green-700 mb-2">
-									{#if loading}
-										<div class="animate-pulse bg-green-200 h-12 w-48 rounded mx-auto"></div>
+									{#if loading || loadingFunds}
+										<div class="flex items-center justify-center space-x-2">
+											<LoadingSpinner size="lg" color="primary" />
+											<div class="animate-pulse bg-green-200 h-12 w-48 rounded"></div>
+										</div>
 									{:else}
 										{formatCurrency(availableFunds)}
 									{/if}
@@ -556,6 +843,146 @@
 						</div>
 					</div>
 				</section>
+
+				<!-- Progress Goals Summary Section -->
+				{#if envelopes.some(env => (env.type === 'savings' && env.target_amount && env.target_amount > 0) || (env.type === 'debt' && env.target_amount && env.target_amount < 0))}
+					<section class="progress-goals-summary">
+						<div class="mb-6">
+							<h2 class="text-xl font-semibold text-gray-900">Goals & Progress</h2>
+							<p class="text-sm text-gray-600">Track your savings goals and debt payoff progress</p>
+						</div>
+						
+						<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+							<!-- Savings Goals -->
+							{#if envelopes.filter(env => env.type === 'savings' && env.target_amount && env.target_amount > 0).length > 0}
+								{@const savingsEnvelopes = envelopes.filter(env => env.type === 'savings' && env.target_amount && env.target_amount > 0)}
+								<div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+									<div class="flex items-center mb-4">
+										<div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+											</svg>
+										</div>
+										<div>
+											<h3 class="text-lg font-semibold text-green-900">Savings Goals</h3>
+											<p class="text-sm text-green-700">{savingsEnvelopes.length} active goal{savingsEnvelopes.length === 1 ? '' : 's'}</p>
+										</div>
+									</div>
+									
+									<div class="space-y-4">
+										{#each savingsEnvelopes.slice(0, 3) as envelope}
+											{@const progress = calculateSavingsProgress(envelope)}
+											<div class="bg-white rounded-lg p-4 shadow-sm">
+												<div class="flex items-center justify-between mb-2">
+													<h4 class="font-medium text-gray-900 truncate">{envelope.name}</h4>
+													<span class="text-sm font-semibold text-green-600">
+														{Math.round(progress.percentage)}%
+													</span>
+												</div>
+												
+												<div class="mb-2">
+													<div class="flex justify-between text-sm text-gray-600 mb-1">
+														<span>{formatCurrency(envelope.balance)}</span>
+														<span>{formatCurrency(envelope.target_amount || 0)}</span>
+													</div>
+													<div class="w-full bg-gray-200 rounded-full h-2">
+														<div
+															class="{getProgressBarColor('savings', progress.status)} h-2 rounded-full transition-all duration-500"
+															style="width: {progress.percentage}%"
+														></div>
+													</div>
+												</div>
+												
+												<div class="flex items-center justify-between text-xs">
+													<span class="text-gray-600">
+														{getProgressMessage('savings', progress.status, progress.percentage)}
+													</span>
+													{#if progress.timeToGoal}
+														<span class="text-green-600 font-medium">
+															{progress.timeToGoal} remaining
+														</span>
+													{/if}
+												</div>
+											</div>
+										{/each}
+										
+										{#if savingsEnvelopes.length > 3}
+											<div class="text-center">
+												<a href="/envelopes" class="text-sm text-green-600 hover:text-green-500 font-medium">
+													View all {savingsEnvelopes.length} savings goals →
+												</a>
+											</div>
+										{/if}
+									</div>
+								</div>
+							{/if}
+							
+							<!-- Debt Payoff -->
+							{#if envelopes.filter(env => env.type === 'debt' && env.target_amount && env.target_amount < 0).length > 0}
+								{@const debtEnvelopes = envelopes.filter(env => env.type === 'debt' && env.target_amount && env.target_amount < 0)}
+								<div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+									<div class="flex items-center mb-4">
+										<div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+											</svg>
+										</div>
+										<div>
+											<h3 class="text-lg font-semibold text-blue-900">Debt Payoff</h3>
+											<p class="text-sm text-blue-700">{debtEnvelopes.length} debt{debtEnvelopes.length === 1 ? '' : 's'} to pay off</p>
+										</div>
+									</div>
+									
+									<div class="space-y-4">
+										{#each debtEnvelopes.slice(0, 3) as envelope}
+											{@const progress = calculateDebtProgress(envelope)}
+											<div class="bg-white rounded-lg p-4 shadow-sm">
+												<div class="flex items-center justify-between mb-2">
+													<h4 class="font-medium text-gray-900 truncate">{envelope.name}</h4>
+													<span class="text-sm font-semibold text-blue-600">
+														{Math.round(progress.percentage)}% paid
+													</span>
+												</div>
+												
+												<div class="mb-2">
+													<div class="flex justify-between text-sm text-gray-600 mb-1">
+														<span>Remaining: {formatCurrency(Math.abs(envelope.balance))}</span>
+														<span>Total: {formatCurrency(Math.abs(envelope.target_amount || 0))}</span>
+													</div>
+													<div class="w-full bg-gray-200 rounded-full h-2">
+														<div
+															class="{getProgressBarColor('debt', progress.status)} h-2 rounded-full transition-all duration-500"
+															style="width: {progress.percentage}%"
+														></div>
+													</div>
+												</div>
+												
+												<div class="flex items-center justify-between text-xs">
+													<span class="text-gray-600">
+														{getProgressMessage('debt', progress.status, progress.percentage)}
+													</span>
+													{#if progress.payoffProjection}
+														<span class="text-blue-600 font-medium">
+															{progress.payoffProjection} to payoff
+														</span>
+													{/if}
+												</div>
+											</div>
+										{/each}
+										
+										{#if debtEnvelopes.length > 3}
+											<div class="text-center">
+												<a href="/envelopes" class="text-sm text-blue-600 hover:text-blue-500 font-medium">
+													View all {debtEnvelopes.length} debts →
+												</a>
+											</div>
+										{/if}
+									</div>
+								</div>
+							{/if}
+						</div>
+					</section>
+				{/if}
 
 				<!-- Financial Overview Section -->
 				<section class="financial-overview">
@@ -640,8 +1067,16 @@
 						</div>
 					</div>
 					
-					{#if loading}
+					{#if loading || loadingTransactions}
 						<div class="bg-white rounded-lg shadow overflow-hidden">
+							{#if loadingTransactions}
+								<div class="p-4 bg-blue-50 border-b border-blue-200">
+									<div class="flex items-center justify-center space-x-2">
+										<LoadingSpinner size="sm" color="primary" />
+										<span class="text-sm text-blue-700">Loading recent transactions...</span>
+									</div>
+								</div>
+							{/if}
 							<div class="divide-y divide-gray-200">
 								{#each Array(3) as _}
 									<div class="p-4 animate-pulse">
@@ -783,16 +1218,25 @@
 						</div>
 					</div>
 					
-					{#if loading}
+					{#if loading || loadingEnvelopes}
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{#each Array(3) as _}
-								<div class="bg-white rounded-lg shadow p-4 animate-pulse">
+								<div class="bg-white rounded-lg shadow p-4">
 									<div class="flex items-center justify-between mb-3">
-										<div class="h-4 bg-gray-200 rounded w-24"></div>
-										<div class="h-3 bg-gray-200 rounded w-16"></div>
+										<div class="flex items-center space-x-2">
+											<LoadingSpinner size="sm" color="secondary" />
+											<div class="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+										</div>
+										<div class="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
 									</div>
-									<div class="h-6 bg-gray-200 rounded w-20 mb-2"></div>
-									<div class="h-2 bg-gray-200 rounded w-full"></div>
+									<div class="h-6 bg-gray-200 rounded w-20 mb-2 animate-pulse"></div>
+									<div class="h-2 bg-gray-200 rounded w-full animate-pulse"></div>
+									{#if loadingEnvelopes}
+										<div class="text-xs text-gray-500 mt-2 flex items-center">
+											<LoadingSpinner size="sm" color="gray" />
+											<span class="ml-1">Loading envelope data...</span>
+										</div>
+									{/if}
 								</div>
 							{/each}
 						</div>
@@ -828,26 +1272,98 @@
 										{/if}
 									</div>
 									
-									<!-- Progress bar for savings/debt envelopes -->
+									<!-- Enhanced Progress Indicators for savings/debt envelopes -->
 									{#if envelope.type === 'savings' && envelope.target_amount && envelope.target_amount > 0}
-										<div class="w-full bg-gray-200 rounded-full h-2">
-											<div
-												class="bg-green-500 h-2 rounded-full transition-all duration-300"
-												style="width: {Math.min(100, Math.max(0, (envelope.balance / envelope.target_amount) * 100))}%"
-											></div>
-										</div>
-										<div class="text-xs text-gray-500 mt-1">
-											{Math.round((envelope.balance / envelope.target_amount) * 100)}% of goal
+										{@const progress = calculateSavingsProgress(envelope)}
+										<div class="mt-3 space-y-2">
+											<!-- Progress Bar -->
+											<div class="relative">
+												<div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+													<div
+														class="{getProgressBarColor('savings', progress.status)} h-3 rounded-full transition-all duration-500 ease-out relative"
+														style="width: {progress.percentage}%"
+													>
+														<!-- Animated shine effect for completed goals -->
+														{#if progress.status === 'completed'}
+															<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+														{/if}
+													</div>
+												</div>
+												<!-- Progress percentage overlay -->
+												<div class="absolute inset-0 flex items-center justify-center">
+													<span class="text-xs font-medium text-gray-700">
+														{Math.round(progress.percentage)}%
+													</span>
+												</div>
+											</div>
+											
+											<!-- Progress Status Message -->
+											<div class="flex items-center justify-between text-xs">
+												<span class="text-gray-600 font-medium">
+													{getProgressMessage('savings', progress.status, progress.percentage)}
+												</span>
+												{#if progress.timeToGoal}
+													<span class="text-green-600 font-medium">
+														~{progress.timeToGoal} to goal
+													</span>
+												{/if}
+											</div>
+											
+											<!-- Milestone indicators -->
+											{#if progress.percentage > 0 && progress.percentage < 100}
+												<div class="flex justify-between text-xs text-gray-400 mt-1">
+													<span class="{progress.percentage >= 25 ? 'text-green-600 font-medium' : ''}">25%</span>
+													<span class="{progress.percentage >= 50 ? 'text-green-600 font-medium' : ''}">50%</span>
+													<span class="{progress.percentage >= 75 ? 'text-green-600 font-medium' : ''}">75%</span>
+													<span class="{progress.percentage >= 100 ? 'text-green-600 font-medium' : ''}">Goal</span>
+												</div>
+											{/if}
 										</div>
 									{:else if envelope.type === 'debt' && envelope.target_amount && envelope.target_amount < 0}
-										<div class="w-full bg-gray-200 rounded-full h-2">
-											<div
-												class="bg-red-500 h-2 rounded-full transition-all duration-300"
-												style="width: {Math.min(100, Math.max(0, (Math.abs(envelope.balance) / Math.abs(envelope.target_amount)) * 100))}%"
-											></div>
-										</div>
-										<div class="text-xs text-gray-500 mt-1">
-											{Math.round((Math.abs(envelope.balance) / Math.abs(envelope.target_amount)) * 100)}% of debt
+										{@const progress = calculateDebtProgress(envelope)}
+										<div class="mt-3 space-y-2">
+											<!-- Progress Bar -->
+											<div class="relative">
+												<div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+													<div
+														class="{getProgressBarColor('debt', progress.status)} h-3 rounded-full transition-all duration-500 ease-out relative"
+														style="width: {progress.percentage}%"
+													>
+														<!-- Animated shine effect for paid off debt -->
+														{#if progress.status === 'paid-off'}
+															<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
+														{/if}
+													</div>
+												</div>
+												<!-- Progress percentage overlay -->
+												<div class="absolute inset-0 flex items-center justify-center">
+													<span class="text-xs font-medium text-gray-700">
+														{Math.round(progress.percentage)}%
+													</span>
+												</div>
+											</div>
+											
+											<!-- Progress Status Message -->
+											<div class="flex items-center justify-between text-xs">
+												<span class="text-gray-600 font-medium">
+													{getProgressMessage('debt', progress.status, progress.percentage)}
+												</span>
+												{#if progress.payoffProjection}
+													<span class="text-blue-600 font-medium">
+														~{progress.payoffProjection} to payoff
+													</span>
+												{/if}
+											</div>
+											
+											<!-- Debt reduction milestones -->
+											{#if progress.percentage > 0 && progress.percentage < 100}
+												<div class="flex justify-between text-xs text-gray-400 mt-1">
+													<span class="{progress.percentage >= 25 ? 'text-blue-600 font-medium' : ''}">25%</span>
+													<span class="{progress.percentage >= 50 ? 'text-blue-600 font-medium' : ''}">50%</span>
+													<span class="{progress.percentage >= 75 ? 'text-blue-600 font-medium' : ''}">75%</span>
+													<span class="{progress.percentage >= 100 ? 'text-green-600 font-medium' : ''}">Paid Off</span>
+												</div>
+											{/if}
 										</div>
 									{/if}
 								</div>
@@ -1106,5 +1622,6 @@
 			</div>
 			{/if}
 		</div>
+		{/if}
 	</AppLayout>
 </ProtectedRoute>
