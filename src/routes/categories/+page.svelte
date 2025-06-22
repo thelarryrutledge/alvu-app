@@ -204,10 +204,17 @@
 		deletingCategory = null
 	}
 	
-	// Load data on mount
+	// Load data on mount and when user changes
 	onMount(() => {
-		loadCategoriesData()
+		if ($user) {
+			loadCategoriesData()
+		}
 	})
+	
+	// Reactive loading when user becomes available
+	$: if ($user && initialLoad) {
+		loadCategoriesData()
+	}
 	
 	// Reactive values
 	$: isNewUser = !loading && categories.length === 0

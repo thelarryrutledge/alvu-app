@@ -248,7 +248,7 @@
 </script>
 
 <div class="add-category-form">
-	<form on:submit|preventDefault={handleSubmit} class="space-y-6">
+	<form on:submit|preventDefault={handleSubmit} class="space-y-6" novalidate>
 		<!-- Basic Information Section -->
 		<div class="space-y-4">
 			<div class="border-b border-gray-200 pb-4">
@@ -266,6 +266,7 @@
 				error={errors.name}
 				hint="Choose a descriptive name that clearly identifies this category"
 				maxlength={50}
+				pattern=""
 			/>
 			
 			<!-- Description -->
