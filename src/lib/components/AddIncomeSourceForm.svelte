@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte'
+	import { createEventDispatcher, onMount } from 'svelte'
 	import FormInput from '$lib/components/FormInput.svelte'
 	import FormSelect, { type SelectOption } from '$lib/components/FormSelect.svelte'
 	import FormTextarea from '$lib/components/FormTextarea.svelte'
@@ -8,6 +8,14 @@
 	import { user } from '$lib/stores/auth'
 	import { toastHelpers } from '$lib/stores/toast'
 	import type { IncomeFrequency } from '$lib/types/database'
+	import {
+		validateIncomeSourceForm,
+		sanitizeIncomeSourceData,
+		getValidationSuggestions,
+		validateNameUniqueness,
+		type IncomeSourceFormData,
+		type ValidationResult
+	} from '$lib/utils/incomeSourceValidation'
 	
 	// Event dispatcher
 	const dispatch = createEventDispatcher<{
@@ -16,7 +24,7 @@
 	}>()
 	
 	// Form data
-	let formData = {
+	let formData: IncomeSourceFormData = {
 		name: '',
 		amount: 0,
 		frequency: '' as IncomeFrequency | '',
@@ -28,6 +36,9 @@
 	// Form state
 	let loading = false
 	let errors: Record<string, string> = {}
+	let validationResult: ValidationResult | null = null
+	let suggestions: string[] = []
+	let existingIncomeSourceNames: string[] = []
 	
 	// Frequency options
 	const frequencyOptions: SelectOption[] = [
@@ -38,46 +49,62 @@
 		{ value: 'custom', label: 'Custom frequency' }
 	]
 	
-	// Validation functions
-	function validateForm(): boolean {
-		errors = {}
+	// Load existing income source names for uniqueness validation
+	async function loadExistingIncomeSourceNames() {
+		if (!$user) return
 		
-		// Name validation
-		if (!formData.name.trim()) {
-			errors.name = 'Income source name is required'
-		} else if (formData.name.trim().length < 2) {
-			errors.name = 'Name must be at least 2 characters long'
-		} else if (formData.name.trim().length > 100) {
-			errors.name = 'Name must be less than 100 characters'
-		}
-		
-		// Amount validation
-		if (!formData.amount || formData.amount <= 0) {
-			errors.amount = 'Amount must be greater than 0'
-		} else if (formData.amount > 1000000) {
-			errors.amount = 'Amount must be less than $1,000,000'
-		}
-		
-		// Frequency validation
-		if (!formData.frequency) {
-			errors.frequency = 'Please select a frequency'
-		}
-		
-		// Custom frequency validation
-		if (formData.frequency === 'custom') {
-			if (!formData.custom_frequency_days || formData.custom_frequency_days < 1) {
-				errors.custom_frequency_days = 'Custom frequency must be at least 1 day'
-			} else if (formData.custom_frequency_days > 365) {
-				errors.custom_frequency_days = 'Custom frequency must be less than 365 days'
+		try {
+			const { data, error } = await supabase
+				.from('income_sources')
+				.select('name')
+				.eq('user_id', $user.id)
+			
+			if (error) {
+				console.error('Error fetching existing income source names:', error)
+			} else {
+				existingIncomeSourceNames = data?.map(item => item.name) || []
 			}
+		} catch (error) {
+			console.error('Error loading existing income source names:', error)
+		}
+	}
+	
+	// Comprehensive validation using the validation utilities
+	function validateForm(): boolean {
+		// Sanitize the form data first
+		const sanitizedData = sanitizeIncomeSourceData(formData)
+		
+		// Run comprehensive validation
+		validationResult = validateIncomeSourceForm(sanitizedData)
+		errors = { ...validationResult.errors }
+		
+		// Check name uniqueness
+		const uniquenessError = validateNameUniqueness(
+			sanitizedData.name,
+			existingIncomeSourceNames
+		)
+		if (uniquenessError) {
+			errors.name = uniquenessError
 		}
 		
-		// Description validation (optional but with limits)
-		if (formData.description && formData.description.length > 500) {
-			errors.description = 'Description must be less than 500 characters'
-		}
+		// Get validation suggestions
+		suggestions = getValidationSuggestions(sanitizedData)
+		
+		// Update form data with sanitized values
+		formData = sanitizedData
 		
 		return Object.keys(errors).length === 0
+	}
+	
+	// Real-time validation on input changes
+	function handleInputChange() {
+		// Clear previous errors for real-time feedback
+		if (Object.keys(errors).length > 0) {
+			validateForm()
+		}
+		
+		// Update suggestions
+		suggestions = getValidationSuggestions(formData)
 	}
 	
 	// Calculate next expected date based on frequency
@@ -119,6 +146,9 @@
 	
 	// Submit form
 	async function handleSubmit() {
+		// Load existing names for uniqueness check
+		await loadExistingIncomeSourceNames()
+		
 		if (!validateForm()) {
 			toastHelpers.error('Please fix the errors below')
 			return
@@ -134,14 +164,17 @@
 		try {
 			const nextExpectedDate = calculateNextExpectedDate()
 			
+			// Use sanitized form data
+			const sanitizedData = sanitizeIncomeSourceData(formData)
+			
 			const incomeSourceData = {
 				user_id: $user.id,
-				name: formData.name.trim(),
-				amount: formData.amount,
-				frequency: formData.frequency as IncomeFrequency,
-				custom_frequency_days: formData.frequency === 'custom' ? formData.custom_frequency_days : null,
-				description: formData.description.trim() || null,
-				is_active: formData.is_active,
+				name: sanitizedData.name,
+				amount: sanitizedData.amount,
+				frequency: sanitizedData.frequency as IncomeFrequency,
+				custom_frequency_days: sanitizedData.frequency === 'custom' ? sanitizedData.custom_frequency_days : null,
+				description: sanitizedData.description || null,
+				is_active: sanitizedData.is_active,
 				next_expected_date: nextExpectedDate
 			}
 			
@@ -156,6 +189,7 @@
 				
 				// Handle specific database errors
 				if (error.code === '23505') {
+					errors.name = 'An income source with this name already exists'
 					toastHelpers.error('An income source with this name already exists')
 				} else {
 					toastHelpers.error('Failed to create income source. Please try again.')
@@ -163,7 +197,7 @@
 				return
 			}
 			
-			toastHelpers.success(`Income source "${formData.name}" created successfully!`)
+			toastHelpers.success(`Income source "${sanitizedData.name}" created successfully!`)
 			dispatch('success', { id: data.id, name: data.name })
 			
 			// Reset form
@@ -176,6 +210,8 @@
 				is_active: true
 			}
 			errors = {}
+			validationResult = null
+			suggestions = []
 			
 		} catch (error) {
 			console.error('Error creating income source:', error)
@@ -239,6 +275,11 @@
 		}).format(amount)
 	}
 	
+	// Load existing income source names on component mount
+	onMount(() => {
+		loadExistingIncomeSourceNames()
+	})
+	
 	// Reactive values
 	$: frequencyDescription = getFrequencyDescription(formData.frequency, formData.custom_frequency_days)
 	$: annualEstimate = calculateAnnualEstimate()
@@ -267,6 +308,7 @@
 				label="Income Source Name"
 				placeholder="e.g., Main Job, Freelance Work, Side Hustle"
 				bind:value={formData.name}
+				on:input={handleInputChange}
 				error={errors.name}
 				required
 				maxlength={100}
@@ -281,6 +323,7 @@
 				label="Amount per Payment"
 				placeholder="0.00"
 				bind:value={formData.amount}
+				on:input={handleInputChange}
 				error={errors.amount}
 				required
 				min="0.01"
@@ -301,6 +344,7 @@
 				label="Payment Frequency"
 				placeholder="Select how often you receive this income"
 				bind:value={formData.frequency}
+				on:change={handleInputChange}
 				options={frequencyOptions}
 				error={errors.frequency}
 				required
@@ -316,6 +360,7 @@
 					label="Custom Frequency (Days)"
 					placeholder="30"
 					bind:value={formData.custom_frequency_days}
+					on:input={handleInputChange}
 					error={errors.custom_frequency_days}
 					required
 					min="1"
@@ -337,6 +382,7 @@
 				label="Description (Optional)"
 				placeholder="Add any additional notes about this income source..."
 				bind:value={formData.description}
+				on:input={handleInputChange}
 				error={errors.description}
 				maxlength={500}
 				rows={3}
@@ -360,6 +406,21 @@
 				Active sources are included in monthly estimates and payment schedules
 			</p>
 		</div>
+		
+		<!-- Validation Suggestions -->
+		{#if suggestions.length > 0}
+			<div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+				<h5 class="text-sm font-medium text-amber-900 mb-2">💡 Suggestions</h5>
+				<ul class="text-sm text-amber-700 space-y-1">
+					{#each suggestions as suggestion}
+						<li class="flex items-start">
+							<span class="text-amber-500 mr-2">•</span>
+							{suggestion}
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
 		
 		<!-- Income Estimate -->
 		{#if formData.amount && formData.frequency && annualEstimate > 0}

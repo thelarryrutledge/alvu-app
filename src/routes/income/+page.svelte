@@ -485,7 +485,7 @@
 		<!-- Add Income Source Modal -->
 		<Modal
 			bind:open={showAddModal}
-			size="lg"
+			size="xl"
 			variant="default"
 			title="Add Income Source"
 			showCloseButton={true}
