@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
+	import { goto } from '$app/navigation'
 	import ProtectedRoute from '$lib/components/ProtectedRoute.svelte'
 	import AppLayout from '$lib/components/AppLayout.svelte'
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
+	import { toastHelpers } from '$lib/stores/toast'
 	import type { Envelope, Transaction } from '$lib/types/database'
 	
 	// Dashboard data state
@@ -95,6 +97,54 @@
 			minute: '2-digit'
 		})
 	}
+	
+	// Quick Action Handlers
+	function handleAddIncome() {
+		// For now, show a toast message since income pages aren't implemented yet
+		toastHelpers.info('Add Income feature coming soon! This will navigate to the income entry form.')
+		// Future: goto('/income/add')
+	}
+	
+	function handleAddExpense() {
+		// Check if user has envelopes first
+		if (totalEnvelopes === 0) {
+			toastHelpers.warning('Please create some envelopes first before adding expenses.')
+			goto('/envelopes')
+			return
+		}
+		// For now, show a toast message since expense pages aren't implemented yet
+		toastHelpers.info('Add Expense feature coming soon! This will navigate to the expense entry form.')
+		// Future: goto('/expenses/add')
+	}
+	
+	function handleTransfer() {
+		// Check if user has at least 2 envelopes for transfer
+		if (totalEnvelopes < 2) {
+			toastHelpers.warning('You need at least 2 envelopes to transfer funds between them.')
+			goto('/envelopes')
+			return
+		}
+		// For now, show a toast message since transfer pages aren't implemented yet
+		toastHelpers.info('Transfer feature coming soon! This will open the transfer funds dialog.')
+		// Future: open transfer modal or goto('/transfer')
+	}
+	
+	function handleAllocate() {
+		// Check if user has available funds to allocate
+		if (availableFunds <= 0) {
+			toastHelpers.warning('No available funds to allocate. Please add some income first.')
+			return
+		}
+		// Check if user has envelopes to allocate to
+		if (totalEnvelopes === 0) {
+			toastHelpers.warning('Please create some envelopes first before allocating funds.')
+			goto('/envelopes')
+			return
+		}
+		// For now, show a toast message since allocation pages aren't implemented yet
+		toastHelpers.info('Allocate Funds feature coming soon! This will open the allocation interface.')
+		// Future: open allocation modal or goto('/allocate')
+	}
 </script>
 
 <ProtectedRoute>
@@ -157,7 +207,10 @@
 								</p>
 								{#if availableFunds > 0}
 									<div class="mt-4">
-										<button class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200">
+										<button
+											on:click={handleAllocate}
+											class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
+										>
 											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
 											</svg>
@@ -207,7 +260,6 @@
 								</div>
 							</div>
 						</div>
-						</div>
 
 						<!-- Recent Transactions Card -->
 						<div class="bg-white overflow-hidden shadow rounded-lg">
@@ -247,7 +299,10 @@
 						<p class="text-sm text-gray-600">Manage your budget with these common actions</p>
 					</div>
 					<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-						<button class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105">
+						<button
+							on:click={handleAddIncome}
+							class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105"
+						>
 							<div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-600 transition-colors">
 								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -256,7 +311,10 @@
 							<span class="text-sm font-medium text-gray-900 group-hover:text-green-600">Add Income</span>
 						</button>
 
-						<button class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105">
+						<button
+							on:click={handleAddExpense}
+							class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105"
+						>
 							<div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-red-600 transition-colors">
 								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
@@ -265,7 +323,10 @@
 							<span class="text-sm font-medium text-gray-900 group-hover:text-red-600">Add Expense</span>
 						</button>
 
-						<button class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105">
+						<button
+							on:click={handleTransfer}
+							class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105"
+						>
 							<div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600 transition-colors">
 								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -274,7 +335,10 @@
 							<span class="text-sm font-medium text-gray-900 group-hover:text-blue-600">Transfer</span>
 						</button>
 
-						<button class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105">
+						<button
+							on:click={handleAllocate}
+							class="action-button bg-white p-4 rounded-lg shadow hover:shadow-md transition-all duration-200 text-center group hover:scale-105"
+						>
 							<div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-purple-600 transition-colors">
 								<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
