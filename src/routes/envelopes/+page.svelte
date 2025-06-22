@@ -6,6 +6,8 @@
 	import PageLoading from '$lib/components/PageLoading.svelte'
 	import Modal from '$lib/components/Modal.svelte'
 	import AddEnvelopeForm from '$lib/components/AddEnvelopeForm.svelte'
+	import EditEnvelopeForm from '$lib/components/EditEnvelopeForm.svelte'
+	import DeleteEnvelopeModal from '$lib/components/DeleteEnvelopeModal.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -20,6 +22,10 @@
 	let hasError = false
 	let errorMessage = ''
 	let showAddModal = false
+	let showEditModal = false
+	let editingEnvelope: Envelope | null = null
+	let showDeleteModal = false
+	let deletingEnvelope: Envelope | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -247,6 +253,42 @@
 	
 	function handleAddCancel() {
 		showAddModal = false
+	}
+	
+	// Handlers for edit envelope modal
+	function handleEditEnvelope(envelope: Envelope) {
+		editingEnvelope = envelope
+		showEditModal = true
+	}
+	
+	function handleEditSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showEditModal = false
+		editingEnvelope = null
+		// Refresh the envelopes list
+		loadEnvelopesData()
+	}
+	
+	function handleEditCancel() {
+		showEditModal = false
+		editingEnvelope = null
+	}
+	
+	// Handlers for delete envelope modal
+	function handleDeleteEnvelope(envelope: Envelope) {
+		deletingEnvelope = envelope
+		showDeleteModal = true
+	}
+	
+	function handleDeleteSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showDeleteModal = false
+		deletingEnvelope = null
+		// Refresh the envelopes list
+		loadEnvelopesData()
+	}
+	
+	function handleDeleteCancel() {
+		showDeleteModal = false
+		deletingEnvelope = null
 	}
 	
 	// Load data on mount and when user changes
@@ -692,6 +734,7 @@
 															<!-- Actions -->
 															<div class="flex items-center space-x-2">
 																<button
+																	on:click={() => handleEditEnvelope(envelope)}
 																	class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
 																	title="Edit envelope"
 																>
@@ -700,6 +743,7 @@
 																	</svg>
 																</button>
 																<button
+																	on:click={() => handleDeleteEnvelope(envelope)}
 																	class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
 																	title="Delete envelope"
 																>
@@ -753,5 +797,45 @@
 				on:cancel={handleAddCancel}
 			/>
 		</Modal>
+		
+		<!-- Edit Envelope Modal -->
+		{#if editingEnvelope}
+			<Modal
+				bind:open={showEditModal}
+				size="xl"
+				variant="default"
+				title="Edit Envelope"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+				on:close={handleEditCancel}
+			>
+				<EditEnvelopeForm
+					envelope={editingEnvelope}
+					on:success={handleEditSuccess}
+					on:cancel={handleEditCancel}
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Delete Envelope Modal -->
+		{#if deletingEnvelope}
+			<Modal
+				bind:open={showDeleteModal}
+				size="lg"
+				variant="default"
+				title="Delete Envelope"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+				on:close={handleDeleteCancel}
+			>
+				<DeleteEnvelopeModal
+					envelope={deletingEnvelope}
+					on:success={handleDeleteSuccess}
+					on:cancel={handleDeleteCancel}
+				/>
+			</Modal>
+		{/if}
 	</AppLayout>
 </ProtectedRoute>

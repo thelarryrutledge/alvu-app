@@ -97,13 +97,13 @@
 - [x] Create envelopes list page with category grouping
 - [x] Implement add envelope form with type selection
 - [x] Create regular envelope configuration
-- [ ] Implement savings envelope with goal settings
-- [ ] Create debt envelope with balance/APR fields
-- [ ] Add envelope validation logic
-- [ ] Implement edit envelope functionality
-- [ ] Add delete envelope with balance handling
-- [ ] Create envelope display cards with progress indicators
-- [ ] Test envelope CRUD operations
+- [x] Implement savings envelope with goal settings
+- [x] Create debt envelope with balance/APR fields
+- [x] Add envelope validation logic
+- [x] Implement edit envelope functionality
+- [x] Add delete envelope with balance handling
+- [x] Create envelope display cards with progress indicators
+- [x] Test envelope CRUD operations
 
 ## Task 9: Transaction System - Income Processing
 
