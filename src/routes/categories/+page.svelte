@@ -4,6 +4,8 @@
 	import AppLayout from '$lib/components/AppLayout.svelte'
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 	import PageLoading from '$lib/components/PageLoading.svelte'
+	import Modal from '$lib/components/Modal.svelte'
+	import AddCategoryForm from '$lib/components/AddCategoryForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -16,6 +18,7 @@
 	let lastUpdated = new Date()
 	let hasError = false
 	let errorMessage = ''
+	let showAddModal = false
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -136,7 +139,7 @@
 	
 	// Handlers
 	function handleAddCategory() {
-		toastHelpers.info('Add category functionality coming soon!')
+		showAddModal = true
 	}
 	
 	function handleEditCategory(category: Category) {
@@ -149,6 +152,17 @@
 			return
 		}
 		toastHelpers.info(`Delete category "${category.name}" functionality coming soon!`)
+	}
+	
+	// Modal handlers
+	function handleAddSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showAddModal = false
+		// Refresh the categories list
+		loadCategoriesData()
+	}
+	
+	function handleAddCancel() {
+		showAddModal = false
 	}
 	
 	// Load data on mount
@@ -678,5 +692,21 @@
 			{/if}
 		</div>
 		{/if}
+		
+		<!-- Add Category Modal -->
+		<Modal
+			bind:open={showAddModal}
+			size="xl"
+			variant="default"
+			title="Add Category"
+			showCloseButton={true}
+			closeOnBackdrop={false}
+			closeOnEscape={true}
+		>
+			<AddCategoryForm
+				on:success={handleAddSuccess}
+				on:cancel={handleAddCancel}
+			/>
+		</Modal>
 	</AppLayout>
 </ProtectedRoute>

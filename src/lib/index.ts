@@ -14,6 +14,7 @@ export { default as ProtectedRoute } from './components/ProtectedRoute.svelte';
 // Form Components
 export { default as AddIncomeSourceForm } from './components/AddIncomeSourceForm.svelte';
 export { default as EditIncomeSourceForm } from './components/EditIncomeSourceForm.svelte';
+export { default as AddCategoryForm } from './components/AddCategoryForm.svelte';
 export { default as FormInput } from './components/FormInput.svelte';
 export { default as FormSelect } from './components/FormSelect.svelte';
 export { default as FormTextarea } from './components/FormTextarea.svelte';

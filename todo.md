@@ -82,8 +82,8 @@
 ## Task 7: Category Management System
 
 - [x] Create categories list page
-- [ ] Implement default categories creation on user signup
-- [ ] Create add custom category form
+- [x] Implement default categories creation on user signup
+- [x] Create add custom category form
 - [ ] Add category validation and duplicate prevention
 - [ ] Implement edit category functionality
 - [ ] Add delete category with envelope reassignment
