@@ -71,7 +71,7 @@
 - [x] Implement add income source form
 - [x] Create frequency selection dropdown
 - [x] Add income source validation logic
-- [ ] Implement edit income source functionality
+- [x] Implement edit income source functionality
 - [ ] Add delete income source with confirmation
 - [ ] Create income source display cards
 - [ ] Implement income source filtering/search

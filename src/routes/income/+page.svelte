@@ -6,6 +6,7 @@
 	import PageLoading from '$lib/components/PageLoading.svelte'
 	import Modal from '$lib/components/Modal.svelte'
 	import AddIncomeSourceForm from '$lib/components/AddIncomeSourceForm.svelte'
+	import EditIncomeSourceForm from '$lib/components/EditIncomeSourceForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -19,6 +20,8 @@
 	let hasError = false
 	let errorMessage = ''
 	let showAddModal = false
+	let showEditModal = false
+	let editingIncomeSource: IncomeSource | null = null
 	
 	// Load income sources
 	async function loadIncomeSourcesData() {
@@ -128,7 +131,8 @@
 	}
 	
 	function handleEditIncomeSource(incomeSource: IncomeSource) {
-		toastHelpers.info(`Edit "${incomeSource.name}" feature coming soon!`)
+		editingIncomeSource = incomeSource
+		showEditModal = true
 	}
 	
 	function handleDeleteIncomeSource(incomeSource: IncomeSource) {
@@ -144,6 +148,19 @@
 	
 	function handleAddCancel() {
 		showAddModal = false
+	}
+	
+	// Edit modal handlers
+	function handleEditSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showEditModal = false
+		editingIncomeSource = null
+		// Refresh the income sources list
+		loadIncomeSourcesData()
+	}
+	
+	function handleEditCancel() {
+		showEditModal = false
+		editingIncomeSource = null
 	}
 	
 	// Load data on mount
@@ -497,5 +514,24 @@
 				on:cancel={handleAddCancel}
 			/>
 		</Modal>
+		
+		<!-- Edit Income Source Modal -->
+		{#if editingIncomeSource}
+			<Modal
+				bind:open={showEditModal}
+				size="xl"
+				variant="default"
+				title="Edit Income Source"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+			>
+				<EditIncomeSourceForm
+					incomeSource={editingIncomeSource}
+					on:success={handleEditSuccess}
+					on:cancel={handleEditCancel}
+				/>
+			</Modal>
+		{/if}
 	</AppLayout>
 </ProtectedRoute>

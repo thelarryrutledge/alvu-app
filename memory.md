@@ -564,6 +564,21 @@ The dashboard and available funds display system is now complete and ready for T
   - Form now provides comprehensive user feedback with validation errors and helpful suggestions
   - Successfully integrated all validation features from the validation utility module
   - Ready for next subtask: implement edit income source functionality
+ - [x] Implement edit income source functionality
+  - Created comprehensive EditIncomeSourceForm component with full TypeScript support
+  - Implemented form pre-population with existing income source data
+  - Added comprehensive validation using the same validation utilities as the add form
+  - Included name uniqueness validation that excludes the current income source being edited
+  - Enhanced income sources page with edit modal and handlers
+  - Added edit button click handlers that open the edit modal with the selected income source
+  - Integrated EditIncomeSourceForm component with proper event handling for success and cancel
+  - Updated database operations to use UPDATE query with proper security checks (user_id validation)
+  - Enhanced Modal component to use max-h-[70vh] instead of max-h-96 for better form content display
+  - Added proper form reset and list refresh after successful edit operations
+  - Exported EditIncomeSourceForm component from lib/index.ts for proper module access
+  - Form includes all validation features: real-time validation, suggestions, error handling
+  - Successfully integrated edit functionality with existing income source management system
+  - Ready for next subtask: add delete income source with confirmation
 
 ## Development Guidelines
 

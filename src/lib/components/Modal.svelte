@@ -180,7 +180,7 @@
 			{/if}
 			
 			<!-- Modal body -->
-			<div class="px-6 py-4 max-h-96 overflow-y-auto">
+			<div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
 				<slot />
 			</div>
 			
