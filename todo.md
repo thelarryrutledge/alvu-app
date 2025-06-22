@@ -58,9 +58,9 @@
 - [x] Implement prominent available funds display card
 - [x] Create quick action buttons section (Add Income, Add Expense, Transfer, Allocate)
 - [x] Add envelope overview with balances
-- [ ] Create recent transactions preview
-- [ ] Implement refresh functionality for real-time updates
-- [ ] Create empty state for new users
+- [x] Create recent transactions preview
+- [x] Implement refresh functionality for real-time updates
+- [x] Create empty state for new users
 - [ ] Add loading states for dashboard data
 - [ ] Implement progress indicators for savings/debt goals
 - [ ] Test dashboard responsiveness and quick actions
