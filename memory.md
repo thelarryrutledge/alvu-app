@@ -58,6 +58,11 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - Add/Edit category forms with validation and color selection
 - Delete functionality with envelope reassignment workflow
 - Protection for default categories (cannot be deleted)
+- **Category Display Components**: Created reusable components for better maintainability
+  - `CategoryCard.svelte`: Individual category display with actions and styling
+  - `CategorySummaryCards.svelte`: Statistics cards showing category counts
+  - `CategoryList.svelte`: Grid layout with loading states and empty state handling
+  - `CategoryEmptyState.svelte`: New user onboarding experience
 
 ## Critical Implementation Details
 

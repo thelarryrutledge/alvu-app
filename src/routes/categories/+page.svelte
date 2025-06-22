@@ -8,6 +8,9 @@
 	import AddCategoryForm from '$lib/components/AddCategoryForm.svelte'
 	import EditCategoryForm from '$lib/components/EditCategoryForm.svelte'
 	import DeleteCategoryModal from '$lib/components/DeleteCategoryModal.svelte'
+	import CategorySummaryCards from '$lib/components/CategorySummaryCards.svelte'
+	import CategoryList from '$lib/components/CategoryList.svelte'
+	import CategoryEmptyState from '$lib/components/CategoryEmptyState.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -148,12 +151,14 @@
 		showAddModal = true
 	}
 	
-	function handleEditCategory(category: Category) {
+	function handleEditCategory(event: CustomEvent<{ category: Category }>) {
+		const category = event.detail.category
 		editingCategory = category
 		showEditModal = true
 	}
 	
-	function handleDeleteCategory(category: Category) {
+	function handleDeleteCategory(event: CustomEvent<{ category: Category }>) {
+		const category = event.detail.category
 		if (category.is_default) {
 			toastHelpers.warning('Default categories cannot be deleted')
 			return
@@ -206,8 +211,6 @@
 	
 	// Reactive values
 	$: isNewUser = !loading && categories.length === 0
-	$: defaultCategories = categories.filter(category => category.is_default)
-	$: customCategories = categories.filter(category => !category.is_default)
 	$: filteredCategories = filterCategories(categories)
 	$: hasActiveFilters = searchQuery.trim() !== '' || typeFilter !== 'all' || sortBy !== 'sort_order' || sortOrder !== 'asc'
 	
@@ -292,137 +295,12 @@
 
 			<!-- New User Empty State -->
 			{#if isNewUser}
-				<div class="new-user-onboarding">
-					<div class="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-xl shadow-lg mb-8">
-						<div class="p-8 text-center">
-							<div class="mx-auto w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
-								<svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-								</svg>
-							</div>
-							<h2 class="text-3xl font-bold text-blue-900 mb-4">Set Up Your Categories</h2>
-							<p class="text-lg text-blue-700 mb-6 max-w-2xl mx-auto">
-								Categories help you organize your envelopes into meaningful groups. You'll start with three default categories, and you can add custom ones as needed.
-							</p>
-							<button
-								on:click={handleAddCategory}
-								class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-lg shadow-sm transition-colors duration-200"
-							>
-								<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-								</svg>
-								Add Your First Custom Category
-							</button>
-						</div>
-					</div>
-
-					<!-- Default Categories Info -->
-					<div class="bg-white rounded-lg shadow-lg">
-						<div class="p-6 border-b border-gray-200">
-							<h3 class="text-xl font-semibold text-gray-900">Default Categories</h3>
-							<p class="text-sm text-gray-600 mt-1">These categories are automatically created for every user</p>
-						</div>
-						<div class="p-6">
-							<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-								<div class="text-center">
-									<div class="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-										<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-										</svg>
-									</div>
-									<h4 class="font-medium text-gray-900 mb-2">Unassigned</h4>
-									<p class="text-sm text-gray-600">Default category for envelopes that don't fit elsewhere</p>
-								</div>
-								<div class="text-center">
-									<div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-										<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-										</svg>
-									</div>
-									<h4 class="font-medium text-gray-900 mb-2">Savings</h4>
-									<p class="text-sm text-gray-600">Category for savings goals and emergency funds</p>
-								</div>
-								<div class="text-center">
-									<div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center mx-auto mb-3">
-										<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-										</svg>
-									</div>
-									<h4 class="font-medium text-gray-900 mb-2">Debt</h4>
-									<p class="text-sm text-gray-600">Category for debt payments and loan management</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+				<CategoryEmptyState on:addCategory={handleAddCategory} />
 			{:else}
 				<!-- Main Content -->
 				<div class="space-y-8">
 					<!-- Summary Cards -->
-					<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-						<div class="bg-white overflow-hidden shadow rounded-lg">
-							<div class="p-6">
-								<div class="flex items-center">
-									<div class="flex-shrink-0">
-										<div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-											</svg>
-										</div>
-									</div>
-									<div class="ml-5 w-0 flex-1">
-										<dl>
-											<dt class="text-sm font-medium text-gray-500 truncate">Total Categories</dt>
-											<dd class="text-2xl font-bold text-gray-900">{categories.length}</dd>
-											<dd class="text-sm text-gray-600 mt-1">{defaultCategories.length} default, {customCategories.length} custom</dd>
-										</dl>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="bg-white overflow-hidden shadow rounded-lg">
-							<div class="p-6">
-								<div class="flex items-center">
-									<div class="flex-shrink-0">
-										<div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-											</svg>
-										</div>
-									</div>
-									<div class="ml-5 w-0 flex-1">
-										<dl>
-											<dt class="text-sm font-medium text-gray-500 truncate">Default Categories</dt>
-											<dd class="text-2xl font-bold text-gray-900">{defaultCategories.length}</dd>
-											<dd class="text-sm text-gray-600 mt-1">System provided</dd>
-										</dl>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="bg-white overflow-hidden shadow rounded-lg">
-							<div class="p-6">
-								<div class="flex items-center">
-									<div class="flex-shrink-0">
-										<div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-											</svg>
-										</div>
-									</div>
-									<div class="ml-5 w-0 flex-1">
-										<dl>
-											<dt class="text-sm font-medium text-gray-500 truncate">Custom Categories</dt>
-											<dd class="text-2xl font-bold text-gray-900">{customCategories.length}</dd>
-											<dd class="text-sm text-gray-600 mt-1">User created</dd>
-										</dl>
-									</div>
-								</div>
-							</div>
-						</div>
-					</section>
+					<CategorySummaryCards {categories} />
 
 					<!-- Search and Filter Controls -->
 					<section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -558,169 +436,15 @@
 							</div>
 						</div>
 						
-						{#if loading}
-							<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-								{#each Array(6) as _}
-									<div class="bg-white rounded-lg shadow p-6">
-										<div class="animate-pulse">
-											<div class="flex items-center justify-between mb-4">
-												<div class="h-5 bg-gray-200 rounded w-32"></div>
-												<div class="h-4 bg-gray-200 rounded w-16"></div>
-											</div>
-											<div class="space-y-3">
-												<div class="h-4 bg-gray-200 rounded w-40"></div>
-												<div class="h-4 bg-gray-200 rounded w-28"></div>
-											</div>
-										</div>
-									</div>
-								{/each}
-							</div>
-						{:else if filteredCategories.length > 0}
-							<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-								{#each filteredCategories as category}
-									<!-- Enhanced Category Display Card -->
-									<div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden">
-										<!-- Card Header -->
-										<div class="p-6 pb-4">
-											<div class="flex items-start justify-between mb-4">
-												<div class="flex items-center space-x-3 flex-1 min-w-0">
-													<!-- Category Color -->
-													<div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background-color: {category.color}">
-														{#if category.icon}
-															<span class="text-white text-lg">{category.icon}</span>
-														{:else}
-															<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-															</svg>
-														{/if}
-													</div>
-													<div class="flex-1 min-w-0">
-														<h3 class="font-semibold text-gray-900 text-lg truncate" title={category.name}>{category.name}</h3>
-														<div class="flex items-center space-x-2 mt-1">
-															<!-- Type Badge -->
-															<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {category.is_default ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}">
-																{category.is_default ? 'Default' : 'Custom'}
-															</span>
-															<!-- Sort Order Badge -->
-															<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-																Order: {category.sort_order}
-															</span>
-														</div>
-													</div>
-												</div>
-												<!-- Action Buttons -->
-												<div class="flex items-center space-x-1 ml-2">
-													<button
-														on:click={() => handleEditCategory(category)}
-														class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-														title="Edit category"
-													>
-														<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-														</svg>
-													</button>
-													{#if !category.is_default}
-														<button
-															on:click={() => handleDeleteCategory(category)}
-															class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-															title="Delete category"
-														>
-															<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-																<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-															</svg>
-														</button>
-													{/if}
-												</div>
-											</div>
-											
-											<!-- Description -->
-											{#if category.description}
-												<div class="mb-4">
-													<p class="text-sm text-gray-600 leading-relaxed">{category.description}</p>
-												</div>
-											{/if}
-										</div>
-										
-										<!-- Card Footer -->
-										<div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
-											<div class="flex items-center justify-between text-sm">
-												<!-- Created Date -->
-												<div class="flex items-center text-gray-600">
-													<svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-													</svg>
-													<span class="font-medium">Created:</span>
-													<span class="ml-1">{new Date(category.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-												</div>
-												
-												<!-- Status -->
-												<div class="text-right">
-													<div class="text-xs text-gray-500 mb-0.5">Status</div>
-													<div class="font-semibold text-gray-700">
-														{category.is_default ? 'System' : 'User Created'}
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								{/each}
-							</div>
-						{:else if categories.length > 0}
-							<!-- No Results Found State -->
-							<div class="bg-white rounded-lg shadow p-8 text-center">
-								<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-								</svg>
-								<h3 class="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
-								<p class="text-gray-500 mb-4">
-									{#if hasActiveFilters}
-										No categories match your current filters. Try adjusting your search or filter criteria.
-									{:else}
-										Your search didn't return any results.
-									{/if}
-								</p>
-								<div class="flex flex-col sm:flex-row gap-3 justify-center">
-									{#if hasActiveFilters}
-										<button
-											on:click={clearFilters}
-											class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-										>
-											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-											</svg>
-											Clear Filters
-										</button>
-									{/if}
-									<button
-										on:click={handleAddCategory}
-										class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
-									>
-										<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-										</svg>
-										Add Category
-									</button>
-								</div>
-							</div>
-						{:else}
-							<!-- Empty State -->
-							<div class="bg-white rounded-lg shadow p-8 text-center">
-								<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-								</svg>
-								<h3 class="text-lg font-medium text-gray-900 mb-2">No categories yet</h3>
-								<p class="text-gray-500 mb-4">Add your first category to start organizing your envelopes</p>
-								<button
-									on:click={handleAddCategory}
-									class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
-								>
-									<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-									</svg>
-									Add Category
-								</button>
-							</div>
-						{/if}
+						<CategoryList
+							categories={filteredCategories}
+							{loading}
+							{hasActiveFilters}
+							on:edit={handleEditCategory}
+							on:delete={handleDeleteCategory}
+							on:addCategory={handleAddCategory}
+							on:clearFilters={clearFilters}
+						/>
 					</section>
 				</div>
 			{/if}
