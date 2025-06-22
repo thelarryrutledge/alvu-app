@@ -130,93 +130,113 @@
 
 			<!-- Main Dashboard Grid -->
 			<div class="dashboard-grid space-y-8">
+				<!-- Prominent Available Funds Display -->
+				<section class="available-funds-hero">
+					<div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow-lg">
+						<div class="p-8">
+							<div class="text-center">
+								<div class="mx-auto w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
+									<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+									</svg>
+								</div>
+								<h2 class="text-lg font-medium text-green-900 mb-2">Available to Allocate</h2>
+								<div class="text-4xl md:text-5xl font-bold text-green-700 mb-2">
+									{#if loading}
+										<div class="animate-pulse bg-green-200 h-12 w-48 rounded mx-auto"></div>
+									{:else}
+										{formatCurrency(availableFunds)}
+									{/if}
+								</div>
+								<p class="text-green-600 text-sm">
+									{#if availableFunds > 0}
+										Ready to be allocated to your envelopes
+									{:else}
+										Add income to start budgeting
+									{/if}
+								</p>
+								{#if availableFunds > 0}
+									<div class="mt-4">
+										<button class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200">
+											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+											</svg>
+											Allocate Funds
+										</button>
+									</div>
+								{/if}
+							</div>
+						</div>
+					</div>
+				</section>
+
 				<!-- Financial Overview Section -->
 				<section class="financial-overview">
 					<div class="mb-6">
 						<h2 class="text-xl font-semibold text-gray-900">Financial Overview</h2>
 						<p class="text-sm text-gray-600">Your current financial snapshot</p>
 					</div>
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				<!-- Available Funds Card -->
-				<div class="bg-white overflow-hidden shadow rounded-lg">
-					<div class="p-5">
-						<div class="flex items-center">
-							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-									<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-									</svg>
-								</div>
-							</div>
-							<div class="ml-5 w-0 flex-1">
-								<dl>
-									<dt class="text-sm font-medium text-gray-500 truncate">Available Funds</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if loading}
-											<div class="animate-pulse bg-gray-200 h-6 w-20 rounded"></div>
-										{:else}
-											{formatCurrency(availableFunds)}
-										{/if}
-									</dd>
-								</dl>
-							</div>
-						</div>
-					</div>
-				</div>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-				<!-- Envelopes Card -->
-				<div class="bg-white overflow-hidden shadow rounded-lg">
-					<div class="p-5">
-						<div class="flex items-center">
-							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-									<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-									</svg>
+						<!-- Total Envelopes Card -->
+						<div class="bg-white overflow-hidden shadow rounded-lg">
+							<div class="p-6">
+								<div class="flex items-center">
+									<div class="flex-shrink-0">
+										<div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+											</svg>
+										</div>
+									</div>
+									<div class="ml-5 w-0 flex-1">
+										<dl>
+											<dt class="text-sm font-medium text-gray-500 truncate">Total Envelopes</dt>
+											<dd class="text-2xl font-bold text-gray-900">
+												{#if loading}
+													<div class="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+												{:else}
+													{totalEnvelopes}
+												{/if}
+											</dd>
+											<dd class="text-sm text-gray-600 mt-1">
+												{totalEnvelopes === 1 ? 'envelope' : 'envelopes'} created
+											</dd>
+										</dl>
+									</div>
 								</div>
 							</div>
-							<div class="ml-5 w-0 flex-1">
-								<dl>
-									<dt class="text-sm font-medium text-gray-500 truncate">Total Envelopes</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if loading}
-											<div class="animate-pulse bg-gray-200 h-6 w-8 rounded"></div>
-										{:else}
-											{totalEnvelopes}
-										{/if}
-									</dd>
-								</dl>
-							</div>
 						</div>
-					</div>
-				</div>
+						</div>
 
-				<!-- Recent Transactions Card -->
-				<div class="bg-white overflow-hidden shadow rounded-lg">
-					<div class="p-5">
-						<div class="flex items-center">
-							<div class="flex-shrink-0">
-								<div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-									<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-									</svg>
+						<!-- Recent Transactions Card -->
+						<div class="bg-white overflow-hidden shadow rounded-lg">
+							<div class="p-6">
+								<div class="flex items-center">
+									<div class="flex-shrink-0">
+										<div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+											<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+											</svg>
+										</div>
+									</div>
+									<div class="ml-5 w-0 flex-1">
+										<dl>
+											<dt class="text-sm font-medium text-gray-500 truncate">Recent Transactions</dt>
+											<dd class="text-2xl font-bold text-gray-900">
+												{#if loading}
+													<div class="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+												{:else}
+													{recentTransactionsCount}
+												{/if}
+											</dd>
+											<dd class="text-sm text-gray-600 mt-1">
+												in the last 5 transactions
+											</dd>
+										</dl>
+									</div>
 								</div>
-							</div>
-							<div class="ml-5 w-0 flex-1">
-								<dl>
-									<dt class="text-sm font-medium text-gray-500 truncate">Recent Transactions</dt>
-									<dd class="text-lg font-medium text-gray-900">
-										{#if loading}
-											<div class="animate-pulse bg-gray-200 h-6 w-8 rounded"></div>
-										{:else}
-											{recentTransactionsCount}
-										{/if}
-									</dd>
-								</dl>
-							</div>
 						</div>
-					</div>
-				</div>
 					</div>
 				</section>
 
