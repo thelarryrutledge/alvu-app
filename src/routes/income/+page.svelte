@@ -447,63 +447,128 @@
 								{/each}
 							</div>
 						{:else if incomeSources.length > 0}
-							<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+							<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
 								{#each incomeSources as incomeSource}
-									<div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200 p-6 {!incomeSource.is_active ? 'opacity-75' : ''}">
-										<div class="flex items-center justify-between mb-4">
-											<div class="flex items-center space-x-3">
-												<div class="w-10 h-10 rounded-lg flex items-center justify-center {incomeSource.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'}">
-													<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-													</svg>
+									<!-- Enhanced Income Source Display Card -->
+									<div class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden {!incomeSource.is_active ? 'opacity-75' : ''}">
+										<!-- Card Header -->
+										<div class="p-6 pb-4">
+											<div class="flex items-start justify-between mb-4">
+												<div class="flex items-center space-x-3 flex-1 min-w-0">
+													<!-- Status Icon -->
+													<div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 {incomeSource.is_active ? 'bg-gradient-to-br from-green-100 to-emerald-100 text-green-600' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500'}">
+														<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+														</svg>
+													</div>
+													<div class="flex-1 min-w-0">
+														<h3 class="font-semibold text-gray-900 text-lg truncate" title={incomeSource.name}>{incomeSource.name}</h3>
+														<div class="flex items-center space-x-2 mt-1">
+															<!-- Frequency Badge -->
+															<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getFrequencyColor(incomeSource.frequency)}">
+																{formatFrequency(incomeSource.frequency, incomeSource.custom_frequency_days)}
+															</span>
+															<!-- Status Badge -->
+															<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {incomeSource.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
+																{incomeSource.is_active ? 'Active' : 'Inactive'}
+															</span>
+														</div>
+													</div>
 												</div>
-												<div>
-													<h3 class="font-medium text-gray-900">{incomeSource.name}</h3>
-													<span class="text-xs px-2 py-1 rounded-full {getFrequencyColor(incomeSource.frequency)}">
-														{formatFrequency(incomeSource.frequency, incomeSource.custom_frequency_days)}
-													</span>
+												<!-- Action Buttons -->
+												<div class="flex items-center space-x-1 ml-2">
+													<button
+														on:click={() => handleEditIncomeSource(incomeSource)}
+														class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+														title="Edit income source"
+													>
+														<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+														</svg>
+													</button>
+													<button
+														on:click={() => handleDeleteIncomeSource(incomeSource)}
+														class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+														title="Delete income source"
+													>
+														<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+														</svg>
+													</button>
 												</div>
 											</div>
-											<div class="flex items-center space-x-2">
-												<button
-													on:click={() => handleEditIncomeSource(incomeSource)}
-													class="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-													title="Edit income source"
-												>
-													<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-													</svg>
-												</button>
-												<button
-													on:click={() => handleDeleteIncomeSource(incomeSource)}
-													class="p-1 text-gray-400 hover:text-red-600 transition-colors"
-													title="Delete income source"
-												>
-													<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-													</svg>
-												</button>
+											
+											<!-- Amount Display -->
+											<div class="mb-4">
+												<div class="text-3xl font-bold text-gray-900 mb-1">
+													{formatCurrency(incomeSource.amount)}
+												</div>
+												<div class="text-sm text-gray-500">
+													per {incomeSource.frequency === 'custom' && incomeSource.custom_frequency_days ? `${incomeSource.custom_frequency_days} day${incomeSource.custom_frequency_days === 1 ? '' : 's'}` : incomeSource.frequency.replace('-', ' ')}
+												</div>
 											</div>
+											
+											<!-- Description -->
+											{#if incomeSource.description}
+												<div class="mb-4">
+													<p class="text-sm text-gray-600 leading-relaxed">{incomeSource.description}</p>
+												</div>
+											{/if}
 										</div>
 										
-										<div class="space-y-3">
-											<div class="text-2xl font-bold text-gray-900">
-												{formatCurrency(incomeSource.amount)}
-											</div>
-											
-											{#if incomeSource.description}
-												<p class="text-sm text-gray-600">{incomeSource.description}</p>
-											{/if}
-											
+										<!-- Card Footer -->
+										<div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
 											<div class="flex items-center justify-between text-sm">
-												<span class="text-gray-500">
-													Status: <span class="{incomeSource.is_active ? 'text-green-600' : 'text-gray-600'}">{incomeSource.is_active ? 'Active' : 'Inactive'}</span>
-												</span>
-												{#if incomeSource.next_expected_date}
-													<span class="text-gray-500">
-														Next: {new Date(incomeSource.next_expected_date).toLocaleDateString()}
-													</span>
+												<!-- Next Expected Date -->
+												{#if incomeSource.next_expected_date && incomeSource.is_active}
+													<div class="flex items-center text-gray-600">
+														<svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+														</svg>
+														<span class="font-medium">Next:</span>
+														<span class="ml-1">{new Date(incomeSource.next_expected_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+													</div>
+												{:else if !incomeSource.is_active}
+													<div class="flex items-center text-gray-500">
+														<svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+														</svg>
+														<span>Paused</span>
+													</div>
+												{:else}
+													<div class="flex items-center text-gray-500">
+														<svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+														</svg>
+														<span>No schedule</span>
+													</div>
 												{/if}
+												
+												<!-- Monthly Estimate -->
+												<div class="text-right">
+													<div class="text-xs text-gray-500 mb-0.5">Monthly est.</div>
+													<div class="font-semibold text-gray-700">
+														{#if incomeSource.is_active}
+															{formatCurrency((() => {
+																let monthlyAmount = 0;
+																switch (incomeSource.frequency) {
+																	case 'weekly': monthlyAmount = incomeSource.amount * 4.33; break;
+																	case 'bi-weekly': monthlyAmount = incomeSource.amount * 2.17; break;
+																	case 'semi-monthly': monthlyAmount = incomeSource.amount * 2; break;
+																	case 'monthly': monthlyAmount = incomeSource.amount; break;
+																	case 'custom':
+																		if (incomeSource.custom_frequency_days) {
+																			monthlyAmount = incomeSource.amount * (30 / incomeSource.custom_frequency_days);
+																		}
+																		break;
+																}
+																return monthlyAmount;
+															})())}
+														{:else}
+															<span class="text-gray-400">—</span>
+														{/if}
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>
