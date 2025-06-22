@@ -280,7 +280,7 @@
 </script>
 
 <div class="edit-income-source-form">
-	<form on:submit|preventDefault={handleSubmit} class="space-y-6">
+	<form on:submit|preventDefault={handleSubmit} class="space-y-6" novalidate>
 		<!-- Form Header -->
 		<div class="border-b border-gray-200 pb-4">
 			<h3 class="text-lg font-medium text-gray-900">Edit Income Source</h3>
@@ -306,6 +306,7 @@
 				required
 				maxlength={100}
 				hint="Give your income source a descriptive name"
+				pattern=""
 			/>
 			
 			<!-- Amount -->
