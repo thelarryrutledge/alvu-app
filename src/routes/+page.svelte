@@ -24,6 +24,12 @@
 <svelte:head>
 	<title>Alvu - Budget Management</title>
 	<meta name="description" content="Alvu - Envelope-based budget management application" />
+	<!-- Cache busting meta tags -->
+	<meta name="cache-control" content="no-cache, no-store, must-revalidate" />
+	<meta name="pragma" content="no-cache" />
+	<meta name="expires" content="0" />
+	<!-- Version meta tag for cache busting -->
+	<meta name="app-version" content="2024-12-21-v2" />
 </svelte:head>
 
 {#if $loading}
