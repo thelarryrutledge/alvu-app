@@ -76,7 +76,7 @@
 - [x] Create income source display cards
 - [x] Implement income source filtering/search
 - [x] Add income source status management
-- [ ] Test income source filtering
+- [x] Test income source filtering
 - [ ] Test income source CRUD operations
 
 ## Task 7: Category Management System
