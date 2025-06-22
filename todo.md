@@ -89,7 +89,7 @@
 - [x] Add delete category with envelope reassignment
 - [x] Create category display components
 - [x] Implement category color coding system
-- [ ] Add category sorting functionality
+- [x] Add category sorting functionality
 - [ ] Test category management operations
 
 ## Task 8: Envelope Management System

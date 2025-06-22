@@ -50,7 +50,7 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - ✅ **Task 4**: Core UI Framework & Navigation - AppLayout, responsive navigation, modal/toast systems, form components
 - ✅ **Task 5**: Dashboard & Available Funds Display - Dynamic dashboard with financial overview and quick actions
 - ✅ **Task 6**: Income Source Management - Complete CRUD operations with filtering, validation, and status management
-- ✅ **Task 7**: Category Management System - Categories list, add/edit/delete with envelope reassignment, color coding system
+- ✅ **Task 7**: Category Management System - Categories list, add/edit/delete with envelope reassignment, color coding system, sorting functionality
 
 ### Task 7 Implementation Notes
 - Categories page with comprehensive filtering and search
@@ -69,6 +69,12 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - Add/Edit forms feature comprehensive color picker with 18 predefined options
   - Category cards display colored icon backgrounds for visual distinction
   - Real-time color preview and validation in forms
+- **Category Sorting Functionality**: Complete multi-criteria sorting system
+  - Sort by Name (alphabetical), Sort Order (database field), or Date Created (chronological)
+  - Ascending/Descending order options for all sort criteria
+  - Reactive sorting that updates display immediately
+  - Integrated with search and filter functionality
+  - Clear filters resets to default sort (sort_order, ascending)
 
 ## Critical Implementation Details
 
