@@ -734,6 +734,20 @@ The dashboard and available funds display system is now complete and ready for T
   - Successfully tested in browser: edit modal opens, form pre-populates, validation works correctly
   - Edit workflow: click edit → modal opens → form pre-populated → make changes → validation → update/cancel
   - Ready for next subtask: add delete category with envelope reassignment
+- ✅ Delete category with envelope reassignment implemented
+  - Created comprehensive DeleteCategoryModal component with envelope checking and reassignment
+  - Implemented database queries to check for envelopes using the category before deletion
+  - Added envelope reassignment workflow with category selection dropdown
+  - Enhanced categories page with delete modal integration and proper handlers
+  - Added comprehensive validation and error handling for delete operations
+  - Implemented security checks with user_id validation in database operations
+  - Created visual indicators for safe deletion vs. reassignment required scenarios
+  - Added proper warning messages and confirmation dialogs for destructive actions
+  - Integrated with existing modal system using danger variant styling
+  - Added comprehensive test suite validating all delete functionality aspects
+  - Successfully tested delete workflow: click delete → modal opens → reassignment/confirmation → database operation → success feedback
+  - Delete functionality properly handles both scenarios: categories with no envelopes (safe delete) and categories with envelopes (reassignment required)
+  - Ready for next subtask: create category display components
 
 ## Development Guidelines
 

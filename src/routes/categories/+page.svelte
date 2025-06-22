@@ -7,6 +7,7 @@
 	import Modal from '$lib/components/Modal.svelte'
 	import AddCategoryForm from '$lib/components/AddCategoryForm.svelte'
 	import EditCategoryForm from '$lib/components/EditCategoryForm.svelte'
+	import DeleteCategoryModal from '$lib/components/DeleteCategoryModal.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -22,6 +23,8 @@
 	let showAddModal = false
 	let showEditModal = false
 	let editingCategory: Category | null = null
+	let showDeleteModal = false
+	let deletingCategory: Category | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -155,7 +158,8 @@
 			toastHelpers.warning('Default categories cannot be deleted')
 			return
 		}
-		toastHelpers.info(`Delete category "${category.name}" functionality coming soon!`)
+		deletingCategory = category
+		showDeleteModal = true
 	}
 	
 	// Modal handlers
@@ -180,6 +184,19 @@
 	function handleEditCancel() {
 		showEditModal = false
 		editingCategory = null
+	}
+	
+	// Delete modal handlers
+	function handleDeleteSuccess(event: CustomEvent<{ id: string; name: string }>) {
+		showDeleteModal = false
+		deletingCategory = null
+		// Refresh the categories list
+		loadCategoriesData()
+	}
+	
+	function handleDeleteCancel() {
+		showDeleteModal = false
+		deletingCategory = null
 	}
 	
 	// Load data on mount
@@ -741,6 +758,26 @@
 					category={editingCategory}
 					on:success={handleEditSuccess}
 					on:cancel={handleEditCancel}
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Delete Category Modal -->
+		{#if deletingCategory}
+			<Modal
+				bind:open={showDeleteModal}
+				size="lg"
+				variant="danger"
+				title="Delete Category"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+			>
+				<DeleteCategoryModal
+					category={deletingCategory}
+					availableCategories={categories}
+					on:success={handleDeleteSuccess}
+					on:cancel={handleDeleteCancel}
 				/>
 			</Modal>
 		{/if}
