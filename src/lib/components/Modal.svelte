@@ -130,10 +130,12 @@
 	<div
 		class="fixed inset-0 bg-black bg-opacity-50 z-50 flex {centered ? 'items-center' : 'items-start pt-16'} justify-center p-4"
 		on:click={handleBackdropClick}
+		on:keydown={handleKeydown}
 		transition:fade={{ duration: 200 }}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={title ? 'modal-title' : undefined}
+		tabindex="0"
 	>
 		<!-- Modal container -->
 		<div
@@ -142,6 +144,8 @@
 			transition:scale={{ duration: 200, start: 0.95 }}
 			tabindex="-1"
 			on:click|stopPropagation
+			on:keydown|stopPropagation
+			role="document"
 		>
 			<!-- Modal header -->
 			{#if title || showCloseButton || $$slots.header}

@@ -76,7 +76,7 @@
 <div class="min-h-screen bg-gray-50">
 	{#if showNavigation}
 		<!-- Desktop Sidebar -->
-		<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+		<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-56 lg:flex-col">
 			<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 shadow-xl">
 				<!-- Logo -->
 				<div class="flex h-16 shrink-0 items-center">
@@ -185,7 +185,7 @@
 								</svg>
 							</button>
 						</div>
-						<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
+						<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-24">
 							<div class="flex h-16 shrink-0 items-center">
 								<h1 class="text-2xl font-bold text-blue-600">Alvu</h1>
 							</div>
@@ -256,7 +256,7 @@
 	{/if}
 
 	<!-- Main Content -->
-	<main class="{showNavigation ? 'lg:pl-72' : ''} {showBottomNav && showNavigation ? 'pb-20 lg:pb-6' : 'pb-6'} py-6 px-4 sm:px-6 lg:px-8">
+	<main class="{showNavigation ? 'lg:pl-64' : ''} {showBottomNav && showNavigation ? 'pb-20 lg:pb-6' : 'pb-6'} py-6 px-4 sm:px-6 lg:px-8">
 		<slot />
 	</main>
 

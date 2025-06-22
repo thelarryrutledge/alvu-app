@@ -9,6 +9,19 @@ const STATIC_CACHE_URLS = [
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
 	console.log('Service Worker: Installing...')
+	
+	// Skip caching in development mode
+	const isDevelopment = self.location.hostname === 'localhost' ||
+						  self.location.hostname === '127.0.0.1' ||
+						  self.location.port === '5173' ||
+						  self.location.port === '4173'
+
+	if (isDevelopment) {
+		console.log('Service Worker: Development mode detected, skipping cache')
+		event.waitUntil(self.skipWaiting())
+		return
+	}
+
 	event.waitUntil(
 		caches
 			.open(CACHE_NAME)
@@ -58,6 +71,18 @@ self.addEventListener('fetch', (event) => {
 
 	// Skip external requests (Supabase API calls)
 	if (!event.request.url.startsWith(self.location.origin)) {
+		return
+	}
+
+	// Skip caching in development mode (when running on localhost or with Vite dev server)
+	const isDevelopment = self.location.hostname === 'localhost' ||
+						  self.location.hostname === '127.0.0.1' ||
+						  self.location.port === '5173' ||
+						  self.location.port === '4173'
+
+	if (isDevelopment) {
+		// In development, always fetch from network to get fresh content
+		event.respondWith(fetch(event.request))
 		return
 	}
 
