@@ -134,7 +134,7 @@
 ### Advanced Features
 - [x] Transaction export functionality
 - [x] Transaction pagination for large datasets
-- [ ] Bulk transaction operations
+- [x] Bulk transaction operations
 - [ ] Transaction categories and tags
 
 ## Task 10: Dynamic Allocation Interface

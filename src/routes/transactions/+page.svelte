@@ -28,6 +28,12 @@
 	let deletingTransaction: Transaction | null = null
 	let deleting = false
 	
+	// Bulk operations state
+	let selectedTransactions: Set<string> = new Set()
+	let bulkMode = false
+	let showBulkDeleteModal = false
+	let bulkDeleting = false
+	
 	// Filtering and search state
 	let searchQuery = ''
 	let typeFilter: 'all' | 'income' | 'expense' | 'transfer' | 'allocation' = 'all'
@@ -587,6 +593,171 @@
 		const filterText = hasActiveFilters ? ' (filtered)' : ''
 		toastHelpers.success(`Exported ${exportCount} transaction${exportCount === 1 ? '' : 's'}${filterText} to CSV`)
 	}
+// Bulk operations functions
+	function toggleBulkMode() {
+		bulkMode = !bulkMode
+		if (!bulkMode) {
+			selectedTransactions.clear()
+			selectedTransactions = selectedTransactions // Trigger reactivity
+		}
+	}
+	
+	function toggleTransactionSelection(transactionId: string) {
+		if (selectedTransactions.has(transactionId)) {
+			selectedTransactions.delete(transactionId)
+		} else {
+			selectedTransactions.add(transactionId)
+		}
+		selectedTransactions = selectedTransactions // Trigger reactivity
+	}
+	
+	function selectAllVisibleTransactions() {
+		paginatedTransactions.forEach(transaction => {
+			selectedTransactions.add(transaction.id)
+		})
+		selectedTransactions = selectedTransactions // Trigger reactivity
+	}
+	
+	function deselectAllTransactions() {
+		selectedTransactions.clear()
+		selectedTransactions = selectedTransactions // Trigger reactivity
+	}
+	
+	function handleBulkDelete() {
+		if (selectedTransactions.size === 0) {
+			toastHelpers.error('No transactions selected')
+			return
+		}
+		showBulkDeleteModal = true
+	}
+	
+	function handleBulkDeleteCancel() {
+		showBulkDeleteModal = false
+	}
+	
+	async function handleBulkDeleteConfirm() {
+		if (!$user || selectedTransactions.size === 0) {
+			return
+		}
+		
+		bulkDeleting = true
+		
+		try {
+			// Delete transactions one by one using the existing function
+			const transactionIds = Array.from(selectedTransactions)
+			let successCount = 0
+			let errorCount = 0
+			
+			for (const transactionId of transactionIds) {
+				try {
+					const { error } = await supabase.rpc('delete_transaction_with_balance_adjustment', {
+						transaction_id: transactionId,
+						user_id: $user.id
+					})
+					
+					if (error) {
+						console.error('Bulk delete error for transaction:', transactionId, error)
+						errorCount++
+					} else {
+						successCount++
+					}
+				} catch (error) {
+					console.error('Error deleting transaction:', transactionId, error)
+					errorCount++
+				}
+			}
+			
+			// Show results
+			if (successCount > 0) {
+				toastHelpers.success(`Successfully deleted ${successCount} transaction${successCount === 1 ? '' : 's'}`)
+			}
+			if (errorCount > 0) {
+				toastHelpers.error(`Failed to delete ${errorCount} transaction${errorCount === 1 ? '' : 's'}`)
+			}
+			
+			// Reset state
+			showBulkDeleteModal = false
+			selectedTransactions.clear()
+			selectedTransactions = selectedTransactions
+			bulkMode = false
+			
+			// Refresh data
+			await loadTransactionsData()
+		} catch (error) {
+			console.error('Bulk delete error:', error)
+			toastHelpers.error('Failed to delete transactions')
+		} finally {
+			bulkDeleting = false
+		}
+	}
+	
+	function handleBulkExport() {
+		if (selectedTransactions.size === 0) {
+			toastHelpers.error('No transactions selected')
+			return
+		}
+		
+		// Get selected transactions
+		const selectedTxns = transactions.filter(t => selectedTransactions.has(t.id))
+		
+		if (selectedTxns.length === 0) {
+			toastHelpers.error('No transactions to export')
+			return
+		}
+		
+		// Create CSV headers
+		const headers = [
+			'Date',
+			'Type',
+			'Description',
+			'Payee',
+			'Envelope',
+			'Category',
+			'Amount'
+		]
+		
+		// Create CSV rows
+		const rows = selectedTxns.map(transaction => {
+			const envelope = envelopes.find(e => e.id === transaction.envelope_id)
+			const category = envelope ? (envelope as any).categories : null
+			
+			return [
+				new Date(transaction.date).toLocaleDateString(),
+				transaction.type,
+				`"${transaction.description.replace(/"/g, '""')}"`, // Escape quotes
+				transaction.payee ? `"${transaction.payee.replace(/"/g, '""')}"` : '',
+				envelope ? `"${envelope.name.replace(/"/g, '""')}"` : (transaction.type === 'income' ? 'Available Funds' : ''),
+				category ? `"${category.name.replace(/"/g, '""')}"` : '',
+				transaction.amount.toFixed(2)
+			]
+		})
+		
+		// Combine headers and rows
+		const csvContent = [headers, ...rows]
+			.map(row => row.join(','))
+			.join('\n')
+		
+		// Create and download file
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+		const link = document.createElement('a')
+		const url = URL.createObjectURL(blob)
+		
+		link.setAttribute('href', url)
+		link.setAttribute('download', `selected_transactions_${new Date().toISOString().split('T')[0]}.csv`)
+		link.style.visibility = 'hidden'
+		
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		
+		// Show success message
+		toastHelpers.success(`Exported ${selectedTxns.length} selected transaction${selectedTxns.length === 1 ? '' : 's'} to CSV`)
+		
+		// Reset selection
+		selectedTransactions.clear()
+		selectedTransactions = selectedTransactions
+		bulkMode = false
+	}
 	
 	// Load data on mount and when user changes
 	onMount(() => {
@@ -618,6 +789,11 @@
 	$: totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
 	$: totalTransfers = transactions.filter(t => t.type === 'transfer').reduce((sum, t) => sum + t.amount, 0)
 	$: totalAllocations = transactions.filter(t => t.type === 'allocation').reduce((sum, t) => sum + t.amount, 0)
+	
+	// Bulk operations reactive values
+	$: selectedCount = selectedTransactions.size
+	$: allVisibleSelected = paginatedTransactions.length > 0 && paginatedTransactions.every(t => selectedTransactions.has(t.id))
+	$: someVisibleSelected = paginatedTransactions.some(t => selectedTransactions.has(t.id))
 </script>
 
 <ProtectedRoute>
@@ -976,6 +1152,16 @@
 								</div>
 								<div class="flex flex-col sm:flex-row gap-2">
 									<button
+										on:click={toggleBulkMode}
+										class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 {bulkMode ? 'bg-blue-50 border-blue-300 text-blue-700' : ''}"
+									>
+										<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+										<span class="hidden sm:inline">{bulkMode ? 'Exit Bulk Mode' : 'Bulk Operations'}</span>
+										<span class="sm:hidden">{bulkMode ? 'Exit' : 'Bulk'}</span>
+									</button>
+									<button
 										on:click={handleAddTransaction}
 										class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
 									>
@@ -988,6 +1174,67 @@
 								</div>
 							</div>
 						</div>
+						
+						<!-- Bulk Operations Toolbar -->
+						{#if bulkMode && filteredTransactions.length > 0}
+							<div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+								<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+									<div class="flex items-center space-x-4">
+										<!-- Select All/None -->
+										<div class="flex items-center">
+											<input
+												type="checkbox"
+												id="select-all"
+												checked={allVisibleSelected}
+												indeterminate={someVisibleSelected && !allVisibleSelected}
+												on:change={() => allVisibleSelected ? deselectAllTransactions() : selectAllVisibleTransactions()}
+												class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+											/>
+											<label for="select-all" class="ml-2 text-sm font-medium text-gray-700">
+												{#if allVisibleSelected}
+													Deselect All
+												{:else if someVisibleSelected}
+													Select All
+												{:else}
+													Select All
+												{/if}
+											</label>
+										</div>
+										
+										<!-- Selection Count -->
+										<div class="text-sm text-gray-600">
+											{selectedCount} transaction{selectedCount === 1 ? '' : 's'} selected
+										</div>
+									</div>
+									
+									<!-- Bulk Actions -->
+									<div class="flex flex-col sm:flex-row gap-2">
+										<button
+											on:click={handleBulkExport}
+											disabled={selectedCount === 0}
+											class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+											title="Export selected transactions to CSV"
+										>
+											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+											</svg>
+											Export Selected
+										</button>
+										<button
+											on:click={handleBulkDelete}
+											disabled={selectedCount === 0}
+											class="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+											title="Delete selected transactions"
+										>
+											<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+											</svg>
+											Delete Selected
+										</button>
+									</div>
+								</div>
+							</div>
+						{/if}
 						
 						{#if filteredTransactions.length === 0}
 							<div class="text-center py-12 bg-white rounded-lg border border-gray-200">
@@ -1042,9 +1289,21 @@
 										<!-- Transactions in Date Group -->
 										<div class="divide-y divide-gray-200">
 											{#each group.transactions as transaction}
-												<div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-200">
+												<div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-200 {bulkMode && selectedTransactions.has(transaction.id) ? 'bg-blue-50' : ''}">
 													<div class="flex items-center justify-between">
 														<div class="flex items-center flex-1 min-w-0">
+															<!-- Bulk Mode Checkbox -->
+															{#if bulkMode}
+																<div class="flex-shrink-0 mr-4">
+																	<input
+																		type="checkbox"
+																		checked={selectedTransactions.has(transaction.id)}
+																		on:change={() => toggleTransactionSelection(transaction.id)}
+																		class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+																	/>
+																</div>
+															{/if}
+															
 															<!-- Transaction Type Icon -->
 															<div class="flex-shrink-0 mr-4">
 																<div class="w-10 h-10 rounded-lg flex items-center justify-center {getTransactionTypeBadge(transaction.type)}">
@@ -1343,6 +1602,102 @@
 							Deleting...
 						{:else}
 							Delete Transaction
+						{/if}
+					</button>
+				</div>
+			</Modal>
+		{/if}
+		
+		<!-- Bulk Delete Confirmation Modal -->
+		{#if showBulkDeleteModal}
+			<Modal
+				bind:open={showBulkDeleteModal}
+				size="md"
+				variant="danger"
+				title="Delete Selected Transactions"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+				on:close={handleBulkDeleteCancel}
+			>
+				<div class="space-y-4">
+					<div class="flex items-center">
+						<div class="flex-shrink-0 mr-4">
+							<div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+								<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+								</svg>
+							</div>
+						</div>
+						<div class="flex-1">
+							<h3 class="text-lg font-medium text-gray-900">Are you sure?</h3>
+							<p class="text-sm text-gray-500 mt-1">
+								This action cannot be undone. {selectedCount} transaction{selectedCount === 1 ? '' : 's'} will be permanently deleted and any balance adjustments will be reversed.
+							</p>
+						</div>
+					</div>
+					
+					<!-- Selected Transactions Summary -->
+					<div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+						<div class="text-sm font-medium text-gray-900 mb-2">
+							Selected Transactions ({selectedCount})
+						</div>
+						<div class="max-h-32 overflow-y-auto space-y-1">
+							{#each transactions.filter(t => selectedTransactions.has(t.id)).slice(0, 5) as transaction}
+								<div class="flex items-center justify-between text-xs text-gray-600">
+									<span class="truncate">{transaction.description}</span>
+									<span class="ml-2 font-medium">{formatCurrency(transaction.amount)}</span>
+								</div>
+							{/each}
+							{#if selectedCount > 5}
+								<div class="text-xs text-gray-500 italic">
+									...and {selectedCount - 5} more transaction{selectedCount - 5 === 1 ? '' : 's'}
+								</div>
+							{/if}
+						</div>
+					</div>
+					
+					<!-- Warning Message -->
+					<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+						<div class="flex">
+							<svg class="w-5 h-5 text-yellow-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+							</svg>
+							<div class="text-sm text-yellow-800">
+								<p class="font-medium">Balance Impact:</p>
+								<p class="mt-1">
+									All envelope and available fund balances will be adjusted to reverse the effects of these transactions.
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Action Buttons -->
+				<div slot="footer" class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
+					<button
+						type="button"
+						on:click={handleBulkDeleteCancel}
+						disabled={bulkDeleting}
+						class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						Cancel
+					</button>
+					
+					<button
+						type="button"
+						on:click={handleBulkDeleteConfirm}
+						disabled={bulkDeleting}
+						class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{#if bulkDeleting}
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							Deleting {selectedCount} transaction{selectedCount === 1 ? '' : 's'}...
+						{:else}
+							Delete {selectedCount} Transaction{selectedCount === 1 ? '' : 's'}
 						{/if}
 					</button>
 				</div>

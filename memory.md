@@ -343,6 +343,55 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - **Export Integration**: Export functionality works with all transactions, not just current page
 - **Testing Results**: Successfully tested pagination controls, page size changes, and integration with filtering
 
+### Task 9.8 Implementation Notes - Bulk Transaction Operations
+- **Bulk Operations System**: Complete implementation of bulk transaction selection and operations
+  - **Bulk Mode Toggle**: Added toggle button to transaction history header for switching between normal and bulk operation modes
+  - **Transaction Selection**: Individual checkboxes for each transaction with visual feedback (blue background highlighting)
+  - **Master Selection Control**: "Select All/Deselect All" functionality with indeterminate checkbox state for partial selections
+  - **Selection State Management**: Real-time count of selected transactions with smart button state management
+  - **Visual Feedback**: Selected transactions highlighted with blue background and selection count display
+- **Bulk Operations Features**:
+  - **Bulk Export**: Export only selected transactions to CSV with custom filename (`selected_transactions_YYYY-MM-DD.csv`)
+  - **Bulk Delete**: Delete multiple transactions simultaneously with comprehensive confirmation modal
+  - **Selection Tools**: Select all visible transactions on current page or deselect all selected transactions
+  - **Smart UI States**: Bulk action buttons disabled when no transactions selected, visual feedback for selection state
+- **Technical Implementation**:
+  - **State Management**: Used `Set<string>` for efficient transaction ID storage and lookup operations
+  - **Reactive Values**: Implemented `selectedCount`, `allVisibleSelected`, `someVisibleSelected` for real-time UI updates
+  - **Bulk Functions**: Created comprehensive function set for bulk operations:
+    - `toggleBulkMode()` - Switch between normal and bulk modes with state cleanup
+    - `toggleTransactionSelection()` - Individual transaction selection with Set management
+    - `selectAllVisibleTransactions()` - Select all transactions on current page
+    - `deselectAllTransactions()` - Clear all selections
+    - `handleBulkExport()` - Export selected transactions with same CSV format as regular export
+    - `handleBulkDelete()` - Initiate bulk deletion with confirmation modal
+    - `handleBulkDeleteConfirm()` - Execute bulk deletion with progress tracking
+- **User Interface Components**:
+  - **Bulk Mode Toggle**: Visual button with state indication (blue styling when active)
+  - **Bulk Operations Toolbar**: Appears when bulk mode is active with selection controls and action buttons
+  - **Transaction Checkboxes**: Individual checkboxes that appear in bulk mode with proper event handling
+  - **Bulk Delete Modal**: Comprehensive confirmation dialog with transaction summary and impact warnings
+  - **Selection Feedback**: Real-time visual highlighting and selection count display
+- **Bulk Delete Features**:
+  - **Confirmation Modal**: Shows selected transaction count and sample transaction details (first 5 transactions)
+  - **Progress Tracking**: Individual transaction deletion with success/failure counting
+  - **Error Handling**: Comprehensive error handling with separate success and failure counts
+  - **Balance Adjustments**: Uses existing `delete_transaction_with_balance_adjustment` function for each transaction
+  - **User Feedback**: Toast notifications showing results (e.g., "Successfully deleted 5 transactions", "Failed to delete 2 transactions")
+  - **State Cleanup**: Automatic cleanup of selection state and bulk mode after completion
+- **User Experience Enhancements**:
+  - **Seamless Mode Switching**: Smooth transition between normal and bulk modes with proper state management
+  - **Clear Visual Feedback**: Selected transactions clearly highlighted with blue background
+  - **Comprehensive Confirmations**: Detailed confirmation dialogs with transaction impact warnings
+  - **Progress Indicators**: Loading states during bulk operations with descriptive text
+  - **Automatic Cleanup**: State reset and mode exit after successful operations
+- **Performance Considerations**:
+  - **Efficient Selection**: Set-based selection for O(1) lookup performance
+  - **Pagination Integration**: Bulk operations work seamlessly with pagination (select all visible on current page)
+  - **Memory Management**: Proper cleanup of selection state and event handlers
+  - **Database Efficiency**: Individual transaction deletion using existing optimized database functions
+- **Testing Results**: Successfully tested bulk selection, export, and delete operations with various transaction counts and types
+
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality
   - Full-featured page following established patterns from categories page
