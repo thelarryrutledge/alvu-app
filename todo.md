@@ -137,46 +137,7 @@
 - [x] Bulk transaction operations
 - [x] Transaction categories and tags
 
-## Task 10: Dynamic Allocation Interface
-
-- [ ] Create allocation prompt modal after income entry
-- [ ] Implement dynamic allocation row system
-- [ ] Create envelope selection dropdown for allocations
-- [ ] Add allocation amount input with validation
-- [ ] Implement real-time available balance updates
-- [ ] Create add/remove allocation row functionality
-- [ ] Add allocation saving logic
-- [ ] Implement skip allocation option
-- [ ] Create allocation summary display
-- [ ] Test complete allocation workflow
-
-## Task 11: Expense Transaction System
-
-- [ ] Create add expense transaction form
-- [ ] Implement envelope selection for expenses
-- [ ] Create payee selection with autocomplete
-- [ ] Add new payee creation inline
-- [ ] Implement expense amount validation against envelope balance
-- [ ] Create expense transaction saving logic
-- [ ] Add expense confirmation with balance update
-- [ ] Implement expense transaction history
-- [ ] Create expense editing functionality
-- [ ] Test expense transaction flow
-
-## Task 12: Transfer System
-
-- [ ] Create transfer funds form
-- [ ] Implement source envelope selection
-- [ ] Create destination envelope selection
-- [ ] Add transfer amount validation
-- [ ] Implement transfer transaction processing
-- [ ] Create transfer confirmation display
-- [ ] Add transfer transaction history
-- [ ] Implement transfer editing functionality
-- [ ] Create transfer reversal option
-- [ ] Test transfer system functionality
-
-## Task 13: Savings Goal Tracking
+## Task 10: Savings Goal Tracking
 
 - [ ] Create savings goal progress calculation
 - [ ] Implement progress bar component
@@ -189,22 +150,59 @@
 - [ ] Add goal projection calculations
 - [ ] Test savings goal tracking accuracy
 
-## Task 14: Debt Management System
+## Task 11: Debt Management System
 
 - [ ] Create debt balance tracking
 - [ ] Implement APR calculations
 - [ ] Add minimum payment tracking
 - [ ] Create due date management
 - [ ] Implement reverse progress indicator
-- [ ] Add debt payoff projections
-- [ ] Create payment scheduling
-- [ ] Implement debt payoff strategies
+- [ ] Add debt payoff projections (optional - only if enabled for specific debt envelope)
+- [ ] Create payment scheduling (optional - only if enabled for specific debt envelope)
+- [ ] Implement debt payoff strategies (optional - only if enabled for specific debt envelope)
 - [ ] Add debt payment history
 - [ ] Test debt management calculations
 
-## Task 15: PWA Optimization (Renumbered from Task 16)
+## Task 12: Dynamic Allocation Interface
 
-## Task 16: PWA Optimization
+- [ ] Create allocation prompt modal after income entry
+- [ ] Implement dynamic allocation row system
+- [ ] Create envelope selection dropdown for allocations
+- [ ] Add allocation amount input with validation
+- [ ] Implement real-time available balance updates
+- [ ] Create add/remove allocation row functionality
+- [ ] Add allocation saving logic
+- [ ] Implement skip allocation option
+- [ ] Create allocation summary display
+- [ ] Test complete allocation workflow
+
+## Completed Tasks (Covered by Unified Transaction System)
+
+### Expense Transaction System - COMPLETE
+- [x] Create add expense transaction form (covered by unified transaction form)
+- [x] Implement envelope selection for expenses (implemented)
+- [x] Create payee selection with autocomplete (implemented)
+- [x] Add new payee creation inline (implemented)
+- [x] Implement expense amount validation against envelope balance (implemented)
+- [x] Create expense transaction saving logic (implemented)
+- [x] Add expense confirmation with balance update (implemented)
+- [x] Implement expense transaction history (implemented)
+- [x] Create expense editing functionality (implemented)
+- [x] Test expense transaction flow (tested)
+
+### Transfer System - COMPLETE
+- [x] Create transfer funds form (covered by unified transaction form)
+- [x] Implement source envelope selection (implemented)
+- [x] Create destination envelope selection (implemented)
+- [x] Add transfer amount validation (implemented)
+- [x] Implement transfer transaction processing (implemented)
+- [x] Create transfer confirmation display (implemented)
+- [x] Add transfer transaction history (implemented)
+- [x] Implement transfer editing functionality (implemented)
+- [x] Create transfer reversal option (covered by delete functionality)
+- [x] Test transfer system functionality (tested)
+
+## Task 13: PWA Optimization
 
 - [ ] Configure service worker for offline functionality
 - [ ] Implement app manifest with proper icons
@@ -217,7 +215,7 @@
 - [ ] Add app shortcuts in manifest
 - [ ] Test PWA installation and offline functionality
 
-## Task 17: Performance & Optimization
+## Task 14: Performance & Optimization
 
 - [ ] Implement lazy loading for routes
 - [ ] Optimize bundle size with code splitting
@@ -230,7 +228,7 @@
 - [ ] Optimize for Core Web Vitals
 - [ ] Test performance across devices
 
-## Task 18: Testing & Quality Assurance
+## Task 15: Testing & Quality Assurance
 
 - [ ] Set up unit testing framework
 - [ ] Create component unit tests
@@ -243,7 +241,7 @@
 - [ ] Implement error handling tests
 - [ ] Run comprehensive test suite
 
-## Task 19: Security & Data Protection
+## Task 16: Security & Data Protection
 
 - [ ] Implement input sanitization
 - [ ] Add CSRF protection
@@ -256,7 +254,7 @@
 - [ ] Create privacy policy and terms
 - [ ] Conduct security audit
 
-## Task 20: Production Deployment & Documentation
+## Task 17: Production Deployment & Documentation
 
 - [ ] Configure production environment variables
 - [ ] Set up Vercel deployment pipeline
