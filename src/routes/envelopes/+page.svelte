@@ -8,9 +8,11 @@
 	import AddEnvelopeForm from '$lib/components/AddEnvelopeForm.svelte'
 	import EditEnvelopeForm from '$lib/components/EditEnvelopeForm.svelte'
 	import DeleteEnvelopeModal from '$lib/components/DeleteEnvelopeModal.svelte'
+	import SavingsProgressBar from '$lib/components/SavingsProgressBar.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
+	import { calculateSavingsGoalProgress } from '$lib/utils/savingsGoalCalculations'
 	import type { Envelope, Category } from '$lib/types/database'
 	
 	// State
@@ -209,12 +211,16 @@
 		}
 	}
 	
-	// Calculate progress percentage for savings envelopes
-	function calculateSavingsProgress(envelope: Envelope): number {
-		if (envelope.type !== 'savings' || !envelope.target_amount || envelope.target_amount === 0) {
-			return 0
+	// Enhanced progress calculation for savings envelopes
+	function getSavingsProgress(envelope: Envelope) {
+		if (envelope.type !== 'savings' || !envelope.target_amount) {
+			return null
 		}
-		return Math.min(100, (envelope.balance / envelope.target_amount) * 100)
+		return calculateSavingsGoalProgress(
+			envelope.balance,
+			envelope.target_amount,
+			envelope.target_date
+		)
 	}
 	
 	// Calculate debt progress (how much has been paid off)
@@ -718,16 +724,15 @@
 														<div class="flex items-center space-x-4">
 															<!-- Progress Bar for Savings -->
 															{#if envelope.type === 'savings' && envelope.target_amount}
-																<div class="flex items-center space-x-2">
-																	<div class="w-24 bg-gray-200 rounded-full h-2">
-																		<div
-																			class="bg-green-600 h-2 rounded-full transition-all duration-300"
-																			style="width: {calculateSavingsProgress(envelope)}%"
-																		></div>
-																	</div>
-																	<span class="text-xs text-gray-600 w-10 text-right">
-																		{Math.round(calculateSavingsProgress(envelope))}%
-																	</span>
+																<div class="w-32">
+																	<SavingsProgressBar
+																		currentAmount={envelope.balance}
+																		targetAmount={envelope.target_amount}
+																		targetDate={envelope.target_date}
+																		variant="minimal"
+																		size="sm"
+																		showDetails={false}
+																	/>
 																</div>
 															{/if}
 															
