@@ -321,10 +321,6 @@
 		if (type !== 'debt') {
 			apr = undefined
 			minimumPayment = undefined
-			if (balance > 0) balance = 0 // Reset positive balance for debt
-		}
-		if (type === 'debt' && balance > 0) {
-			balance = 0 // Ensure debt starts with non-positive balance
 		}
 		
 		// Auto-select appropriate category
@@ -357,7 +353,7 @@
 				category_id: categoryId,
 				name: name.trim(),
 				type: type,
-				balance: balance
+				balance: type === 'debt' ? -Math.abs(balance) : balance
 			}
 			
 			// Add type-specific fields
@@ -604,7 +600,7 @@
 									{name || 'Envelope Name'}
 								</h4>
 								<div class="flex items-center mt-1 text-sm text-gray-500">
-									<span>Balance: {formatCurrency(balance)}</span>
+									<span>Balance: {formatCurrency(type === 'debt' ? -Math.abs(balance) : balance)}</span>
 									{#if type === 'savings' && targetAmount}
 										<span class="mx-2">•</span>
 										<span>Goal: {formatCurrency(targetAmount)}</span>

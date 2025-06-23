@@ -21,7 +21,7 @@
 	let name = envelope.name
 	let type: 'regular' | 'savings' | 'debt' = envelope.type
 	let categoryId = envelope.category_id
-	let balance = envelope.balance
+	let balance = envelope.type === 'debt' ? Math.abs(envelope.balance) : envelope.balance
 	let targetAmount: number | undefined = envelope.target_amount
 	let targetDate = envelope.target_date || ''
 	let apr: number | undefined = envelope.apr
@@ -319,7 +319,7 @@
 				category_id: categoryId,
 				name: name.trim(),
 				type: type,
-				balance: balance
+				balance: type === 'debt' ? -Math.abs(balance) : balance
 			}
 			
 			// Add type-specific fields
@@ -461,15 +461,15 @@
 			
 			<!-- Current Balance -->
 			<FormInput
-				label="Current Balance"
+				label={type === 'debt' ? 'Remaining Balance Owed' : 'Current Balance'}
 				bind:value={balance}
 				type="number"
 				step="0.01"
-				min={type === 'debt' ? -1000000 : 0}
-				max={type === 'debt' ? 0 : 1000000}
+				min="0"
+				max="1000000"
 				required={true}
 				error={errors.balance}
-				hint={type === 'debt' ? 'Enter the current debt amount as a negative number' : 'Enter the current balance for this envelope'}
+				hint={type === 'debt' ? 'Enter how much you still owe on this debt (positive amount)' : 'Enter the current balance for this envelope'}
 			/>
 		</div>
 		
@@ -559,7 +559,7 @@
 									{name || 'Envelope Name'}
 								</h4>
 								<div class="flex items-center mt-1 text-sm text-gray-500">
-									<span>Balance: {formatCurrency(balance)}</span>
+									<span>Balance: {formatCurrency(type === 'debt' ? -Math.abs(balance) : balance)}</span>
 									{#if type === 'savings' && targetAmount}
 										<span class="mx-2">•</span>
 										<span>Goal: {formatCurrency(targetAmount)}</span>
