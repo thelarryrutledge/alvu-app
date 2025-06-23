@@ -61,6 +61,25 @@ export interface Transaction {
 	date: string
 	created_at: string
 	updated_at: string
+	tags?: TransactionTag[]
+}
+
+export interface TransactionTag {
+	id: string
+	user_id: string
+	name: string
+	color: string
+	description?: string
+	usage_count?: number
+	created_at: string
+	updated_at: string
+}
+
+export interface TransactionTagAssignment {
+	id: string
+	transaction_id: string
+	tag_id: string
+	created_at: string
 }
 
 export type IncomeFrequency = 'weekly' | 'bi-weekly' | 'semi-monthly' | 'monthly' | 'custom'

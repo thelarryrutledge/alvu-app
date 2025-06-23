@@ -7,7 +7,8 @@
 	import FormSelect from '$lib/components/FormSelect.svelte'
 	import FormTextarea from '$lib/components/FormTextarea.svelte'
 	import LoadingButton from '$lib/components/LoadingButton.svelte'
-	import type { Transaction, Envelope, Category, IncomeSource } from '$lib/types/database'
+	import TransactionTagManager from '$lib/components/TransactionTagManager.svelte'
+	import type { Transaction, Envelope, Category, IncomeSource, TransactionTag } from '$lib/types/database'
 	
 	// Props
 	export let transaction: Transaction
@@ -35,6 +36,7 @@
 	let sourceEnvelopeId = ''
 	let destinationEnvelopeId = ''
 	let incomeSourceId = ''
+	let selectedTags: TransactionTag[] = []
 	
 	// Validation state
 	let errors: Record<string, string> = {}
@@ -97,6 +99,9 @@
 			categories = categoriesData || []
 			incomeSources = incomeSourcesData || []
 			
+			// Load existing tags for this transaction
+			await loadTransactionTags()
+			
 			// Set initial values based on transaction type
 			initializeFormFields()
 		} catch (error) {
@@ -104,6 +109,72 @@
 			toastHelpers.error('Failed to load form data')
 		} finally {
 			loadingData = false
+		}
+	}
+	
+	// Load existing tags for the transaction
+	async function loadTransactionTags() {
+		if (!$user) return
+		
+		try {
+			const { data: tagAssignments, error } = await supabase
+				.from('transaction_tag_assignments')
+				.select(`
+					transaction_tags!inner (
+						id,
+						name,
+						color,
+						user_id,
+						created_at,
+						updated_at
+					)
+				`)
+				.eq('transaction_id', transaction.id)
+			
+			if (error) {
+				console.error('Error loading transaction tags:', error)
+				return
+			}
+			
+			selectedTags = (tagAssignments?.map(assignment => assignment.transaction_tags).filter(Boolean) || []) as unknown as TransactionTag[]
+		} catch (error) {
+			console.error('Error loading transaction tags:', error)
+		}
+	}
+	
+	// Update transaction tags
+	async function updateTransactionTags() {
+		if (!$user) return
+		
+		try {
+			// First, delete all existing tag assignments for this transaction
+			const { error: deleteError } = await supabase
+				.from('transaction_tag_assignments')
+				.delete()
+				.eq('transaction_id', transaction.id)
+			
+			if (deleteError) {
+				console.error('Error deleting existing tag assignments:', deleteError)
+				return
+			}
+			
+			// Then, add new tag assignments
+			if (selectedTags.length > 0) {
+				const assignments = selectedTags.map(tag => ({
+					transaction_id: transaction.id,
+					tag_id: tag.id
+				}))
+				
+				const { error: insertError } = await supabase
+					.from('transaction_tag_assignments')
+					.insert(assignments)
+				
+				if (insertError) {
+					console.error('Error inserting new tag assignments:', insertError)
+				}
+			}
+		} catch (error) {
+			console.error('Error updating transaction tags:', error)
 		}
 	}
 	
@@ -204,11 +275,14 @@
 				return
 			}
 			
+			// Update transaction tags
+			await updateTransactionTags()
+			
 			toastHelpers.success('Transaction updated successfully')
-			dispatch('success', { 
-				id: transaction.id, 
-				type: transactionType, 
-				amount: transactionAmount 
+			dispatch('success', {
+				id: transaction.id,
+				type: transactionType,
+				amount: transactionAmount
 			})
 		} catch (error) {
 			console.error('Error updating transaction:', error)
@@ -395,6 +469,14 @@
 				placeholder="Enter transaction description..."
 				rows={3}
 			/>
+
+			<!-- Tags -->
+			<div class="space-y-2">
+				<label class="block text-sm font-medium text-gray-700">Tags (Optional)</label>
+				<TransactionTagManager
+					bind:selectedTags={selectedTags}
+				/>
+			</div>
 
 			<!-- Action Buttons -->
 			<div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">

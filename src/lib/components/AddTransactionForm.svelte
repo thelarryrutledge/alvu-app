@@ -7,7 +7,8 @@
 	import FormSelect from '$lib/components/FormSelect.svelte'
 	import FormTextarea from '$lib/components/FormTextarea.svelte'
 	import LoadingButton from '$lib/components/LoadingButton.svelte'
-	import type { Envelope, Category, IncomeSource } from '$lib/types/database'
+	import TransactionTagManager from '$lib/components/TransactionTagManager.svelte'
+	import type { Envelope, Category, IncomeSource, TransactionTag } from '$lib/types/database'
 	
 	// Props
 	export let preselectedType: 'income' | 'expense' | 'transfer' | 'allocation' | null = null
@@ -35,6 +36,7 @@
 	let sourceEnvelopeId = ''
 	let destinationEnvelopeId = ''
 	let incomeSourceId = ''
+	let selectedTags: TransactionTag[] = []
 	
 	// Validation state
 	let errors: Record<string, string> = {}
@@ -227,11 +229,29 @@
 				return
 			}
 			
+			// Assign tags to the transaction if any are selected
+			if (selectedTags.length > 0) {
+				const transactionId = result.data
+				for (const tag of selectedTags) {
+					const { error: tagError } = await supabase
+						.from('transaction_tag_assignments')
+						.insert({
+							transaction_id: transactionId,
+							tag_id: tag.id
+						})
+					
+					if (tagError) {
+						console.error('Error assigning tag:', tagError)
+						// Don't fail the whole transaction for tag errors, just log them
+					}
+				}
+			}
+			
 			toastHelpers.success(`${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} transaction created successfully`)
-			dispatch('success', { 
-				id: result.data, 
-				type: transactionType, 
-				amount: transactionAmount 
+			dispatch('success', {
+				id: result.data,
+				type: transactionType,
+				amount: transactionAmount
 			})
 		} catch (error) {
 			console.error('Error creating transaction:', error)
@@ -473,6 +493,14 @@
 				placeholder="Enter transaction description..."
 				rows={3}
 			/>
+
+			<!-- Tags -->
+			<div class="space-y-2">
+				<label class="block text-sm font-medium text-gray-700">Tags (Optional)</label>
+				<TransactionTagManager
+					bind:selectedTags={selectedTags}
+				/>
+			</div>
 
 			<!-- Action Buttons -->
 			<div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">

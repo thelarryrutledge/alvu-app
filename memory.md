@@ -392,6 +392,62 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - **Database Efficiency**: Individual transaction deletion using existing optimized database functions
 - **Testing Results**: Successfully tested bulk selection, export, and delete operations with various transaction counts and types
 
+### Task 9.9 Implementation Notes - Transaction Categories and Tags
+- **Transaction Tags System**: Complete implementation of transaction tagging functionality for enhanced organization and filtering
+  - **Database Schema**: Created comprehensive tag system with [`009_create_transaction_tags.sql`](database/migrations/009_create_transaction_tags.sql:1)
+    - `transaction_tags` table: Stores tag definitions with id, user_id, name, color, description, usage_count, timestamps
+    - `transaction_tag_assignments` table: Many-to-many relationship between transactions and tags
+    - **RLS Policies**: Comprehensive Row Level Security policies ensuring users can only access their own tags
+    - **Database Functions**: Created utility functions for tag operations:
+      - `get_user_tags()` - Retrieve all tags for a user with usage counts
+      - `get_transaction_tags()` - Get tags assigned to a specific transaction
+      - `assign_tag_to_transaction()` - Create tag assignment with usage count updates
+      - `create_or_get_tag()` - Create new tag or return existing tag by name
+  - **TypeScript Integration**: Extended database types in [`src/lib/types/database.ts`](src/lib/types/database.ts:1)
+    - `TransactionTag` interface: Complete tag definition with all properties
+    - `TransactionTagAssignment` interface: Assignment relationship structure
+    - Extended `Transaction` interface: Added optional `tags` array property
+- **TransactionTagManager Component**: Comprehensive tag management component at [`src/lib/components/TransactionTagManager.svelte`](src/lib/components/TransactionTagManager.svelte:1)
+  - **Tag Creation**: Inline tag creation with name input and color selection from 18 predefined colors
+  - **Tag Selection**: Visual tag selection with search functionality and real-time filtering
+  - **Color System**: 18 predefined colors (red, orange, yellow, green, teal, cyan, blue, purple, pink, gray variants)
+  - **Search Functionality**: Real-time tag search with case-insensitive filtering
+  - **Usage Tracking**: Display of tag usage counts for better organization
+  - **Event-Driven Architecture**: Dispatches events for parent component integration
+  - **Responsive Design**: Mobile-friendly interface with touch-optimized controls
+- **Form Integration**: Seamless integration into transaction forms
+  - **AddTransactionForm Integration**: Added tag manager to unified transaction form with proper data binding
+  - **EditTransactionForm Integration**: Complete edit support with existing tag loading and updating
+  - **Tag Assignment**: Automatic tag assignment during transaction creation and editing
+  - **Tag Loading**: Loads existing transaction tags for editing scenarios
+  - **Tag Updates**: Handles tag assignment changes with proper database operations
+- **User Interface Features**:
+  - **Visual Tag Display**: Color-coded tags with rounded design and clear typography
+  - **Tag Creation Modal**: Inline tag creation without leaving the transaction form
+  - **Search and Filter**: Real-time tag search with "No tags available" state handling
+  - **Tag Selection State**: Visual feedback for selected tags with proper state management
+  - **Create New Tag Button**: Always available for quick tag creation
+- **Database Operations**:
+  - **Tag CRUD**: Complete Create, Read, Update, Delete operations for tags
+  - **Assignment Management**: Efficient tag assignment and removal operations
+  - **Usage Tracking**: Automatic usage count updates when tags are assigned/removed
+  - **Data Integrity**: Proper foreign key relationships and constraint handling
+  - **Performance**: Optimized queries with proper indexing and RLS policies
+- **Technical Implementation**:
+  - **Reactive State Management**: Real-time updates when tags are created or selected
+  - **Error Handling**: Comprehensive error handling with user-friendly feedback
+  - **Type Safety**: Full TypeScript support with proper type definitions
+  - **Component Reusability**: Modular design allowing use in multiple forms
+  - **Event System**: Clean event-driven communication between components
+- **Testing Results**: Successfully tested end-to-end tag functionality
+  - ✅ **Tag Creation**: Created "Food" tag with green color successfully
+  - ✅ **Tag Display**: Tags display correctly with color coding and proper styling
+  - ✅ **Tag Selection**: Tag selection works with visual feedback
+  - ✅ **Form Integration**: Tag manager integrates seamlessly into transaction forms
+  - ✅ **Database Operations**: All database operations working correctly with proper RLS
+  - ✅ **Search Functionality**: Tag search working with real-time filtering
+  - ✅ **Color System**: All 18 predefined colors available and working correctly
+
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality
   - Full-featured page following established patterns from categories page
