@@ -53,26 +53,50 @@ Alvu is a Progressive Web Application (PWA) envelope-based budget management sys
 
 ### 2. Core Workflows
 
+#### Unified Transaction System
+
+**Architecture Decision**: Single transaction interface with type selection rather than separate forms
+- **Transactions Page**: Central hub for all transaction management with history display
+- **Unified Add Transaction Form**: One form that adapts based on transaction type selection
+- **Dashboard Quick Actions**: Pre-fill transaction form with selected type
+- **Transaction Types**: Income, Expense, Transfer, Allocation handled in unified interface
+
 #### Income Processing
 
-1. User enters income transaction
-2. Funds added to "Available" bucket
-3. System prompts for allocation (can be skipped)
-4. Dynamic allocation interface allows distribution to envelopes
-5. Remaining funds stay in Available bucket
+1. User selects "Income" transaction type or uses dashboard quick action
+2. Unified form shows income-specific fields (income source, amount, description)
+3. Funds added to "Available" bucket
+4. System prompts for allocation (can be skipped)
+5. Dynamic allocation interface allows distribution to envelopes
+6. Remaining funds stay in Available bucket
 
 #### Expense Processing
 
-1. User selects envelope and enters expense details
-2. System validates sufficient envelope balance
-3. Payee information saved for future use
-4. Funds deducted from envelope
+1. User selects "Expense" transaction type or uses dashboard quick action
+2. Unified form shows expense-specific fields (envelope selection, payee, amount)
+3. System validates sufficient envelope balance
+4. Payee information saved for future use
+5. Funds deducted from envelope
+
+#### Transfer Processing
+
+1. User selects "Transfer" transaction type
+2. Form shows source and destination envelope selection
+3. System validates sufficient balance in source envelope
+4. Funds moved between envelopes atomically
+
+#### Allocation Processing
+
+1. User selects "Allocation" transaction type or triggered after income entry
+2. Form shows available funds and envelope selection
+3. Dynamic allocation rows for multiple envelope distributions
+4. Funds moved from available bucket to selected envelopes
 
 #### Envelope Management
 
 - **Savings Envelopes**: Progress tracking toward goals with visual indicators
 - **Debt Envelopes**: Reverse progress showing paydown with payment scheduling
-- **Transfer System**: Move funds between any envelopes
+- **Transfer System**: Integrated into unified transaction system
 
 ### 3. User Interface Design
 

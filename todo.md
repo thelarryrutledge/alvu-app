@@ -105,18 +105,38 @@
 - [x] Create envelope display cards with progress indicators
 - [x] Test envelope CRUD operations
 
-## Task 9: Transaction System - Income Processing
+## Task 9: Complete Transaction System (Merged with Task 15)
 
-- [x] Create add income transaction form
-- [ ] Implement income source selection
-- [ ] Add transaction amount validation
-- [ ] Create transaction date/time handling
-- [ ] Implement income transaction saving
-- [ ] Add transaction to available funds
-- [ ] Create income transaction confirmation
-- [ ] Implement transaction history for income
-- [ ] Add income transaction editing
-- [ ] Test income transaction flow
+### Transaction Management Infrastructure ✅
+- [x] Create add income transaction form (prototype)
+- [x] Create expense transaction form (prototype)
+- [x] Implement core transaction validation logic
+- [x] Database integration with transaction functions
+
+### Unified Transaction System
+- [ ] Create transactions page with history display
+- [ ] Implement unified "Add Transaction" form with type selection
+- [ ] Add transaction filtering and search functionality
+- [ ] Create transaction editing capabilities
+- [ ] Implement transaction deletion with balance adjustments
+
+### Transaction Types Implementation
+- [ ] Income transactions (refactor existing to unified form)
+- [ ] Expense transactions (refactor existing to unified form)
+- [ ] Transfer transactions (between envelopes)
+- [ ] Allocation transactions (available funds to envelopes)
+
+### Dashboard Integration
+- [ ] Update dashboard quick action buttons to open unified transaction form
+- [ ] Implement transaction type pre-selection from dashboard
+- [ ] Add recent transactions preview on dashboard
+- [ ] Create allocation prompt after income entry
+
+### Advanced Features
+- [ ] Transaction export functionality
+- [ ] Transaction pagination for large datasets
+- [ ] Bulk transaction operations
+- [ ] Transaction categories and tags
 
 ## Task 10: Dynamic Allocation Interface
 
@@ -183,18 +203,7 @@
 - [ ] Add debt payment history
 - [ ] Test debt management calculations
 
-## Task 15: Transaction History & Management
-
-- [ ] Create transaction history page
-- [ ] Implement transaction filtering by type
-- [ ] Add date range filtering
-- [ ] Create transaction search functionality
-- [ ] Implement transaction editing
-- [ ] Add transaction deletion with balance adjustment
-- [ ] Create transaction export functionality
-- [ ] Implement transaction pagination
-- [ ] Add transaction sorting options
-- [ ] Test transaction history performance
+## Task 15: PWA Optimization (Renumbered from Task 16)
 
 ## Task 16: PWA Optimization
 

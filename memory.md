@@ -22,10 +22,18 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - **Allocations**: Income distribution rules (manual for MVP, automation planned)
 - **Payees**: Saved payee information with smart defaults
 
+### Transaction System Architecture (Key Decision)
+**UNIFIED TRANSACTION INTERFACE**: Single transaction management system instead of separate forms
+- **Single Transactions Page**: `/transactions` route with history display and "Add Transaction" button
+- **Unified Transaction Form**: One adaptive form with transaction type selection (Income/Expense/Transfer/Allocation)
+- **Dashboard Integration**: Quick action buttons pre-fill transaction form with selected type
+- **Navigation Simplification**: Eliminates separate `/income/add`, `/expenses` routes in favor of unified approach
+- **Task Consolidation**: Merged Task 9 (Transaction System) and Task 15 (Transaction History) into comprehensive transaction management
+
 ### Key Business Logic
 - **Income Processing**: Income adds to "Available" bucket, then user allocates to envelopes
 - **Envelope Assignment**: Auto-assignment by type (Savings→Savings category, Debt→Debt category, others→Unassigned)
-- **Manual Allocation**: Current implementation uses manual allocation interface
+- **Manual Allocation**: Integrated into unified transaction system as allocation transaction type
 - **Balance Management**: Real-time balance updates across all components
 
 ### Security & Data Integrity
@@ -116,13 +124,13 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 
 ## Next Development Phase
 
-**Current**: Task 9 - Transaction System - Income Processing
-- ✅ Create add income transaction form
-- ✅ Implement income source selection
-- ✅ Add transaction amount validation
-- ✅ Create transaction date/time handling
+**Current**: Task 9 - Complete Transaction System (Merged with Task 15)
+- ✅ Transaction prototypes created (income and expense forms)
+- ⏳ Unified transaction system implementation
+- ⏳ Transaction history and management
+- ⏳ Dashboard integration updates
 
-### Task 9.1 Implementation Notes - Add Income Transaction Form
+### Task 9 Implementation Notes - Transaction System Prototypes
 - **Add Income Form**: Complete implementation with comprehensive income recording functionality
   - Full-featured form at [`/income/add`](src/routes/income/add/+page.svelte:1) following established patterns
   - Income source integration with optional selection from user's active income sources
