@@ -114,7 +114,7 @@
 - [x] Database integration with transaction functions
 
 ### Unified Transaction System
-- [ ] Create transactions page with history display
+- [x] Create transactions page with history display
 - [ ] Implement unified "Add Transaction" form with type selection
 - [ ] Add transaction filtering and search functionality
 - [ ] Create transaction editing capabilities

@@ -126,6 +126,7 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 
 **Current**: Task 9 - Complete Transaction System (Merged with Task 15)
 - ✅ Transaction prototypes created (income and expense forms)
+- ✅ Transactions page with history display created
 - ⏳ Unified transaction system implementation
 - ⏳ Transaction history and management
 - ⏳ Dashboard integration updates
@@ -159,6 +160,35 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - **Responsive Design**: Mobile-first approach with proper form layout and navigation
 - **Database Integration**: Secure transaction creation with user verification and constraint handling
 - **Component Reuse**: Leverages existing form components ([`FormInput`](src/lib/components/FormInput.svelte:1), [`FormSelect`](src/lib/components/FormSelect.svelte:1), [`LoadingButton`](src/lib/components/LoadingButton.svelte:1))
+
+### Task 9.1 Implementation Notes - Transactions Page with History Display
+- **Transactions Page**: Complete implementation of central transaction management hub
+  - Full-featured page at [`/transactions`](src/routes/transactions/+page.svelte:1) following established patterns
+  - Comprehensive data loading with transactions, envelopes, and categories from Supabase
+  - Advanced filtering: search by description/payee, filter by type (income/expense/transfer/allocation), filter by envelope, date range filtering
+  - Multiple sorting options: by date, amount, type, or payee with ascending/descending order
+  - Summary statistics cards showing total transactions, income, expenses, and net flow
+  - Empty state handling for new users with call-to-action buttons
+  - Responsive design with mobile-first approach
+  - Error handling and loading states throughout
+  - Integration with existing auth, toast, and modal systems
+- **Transaction History Display Features**:
+  - **Date Grouping**: Transactions grouped by date with smart date formatting (Today, Yesterday, specific dates)
+  - **Transaction Cards**: Rich transaction display with type icons, badges, amounts, and envelope information
+  - **Visual Design**: Color-coded transaction types (green for income, red for expenses, blue for transfers, purple for allocations)
+  - **Envelope Integration**: Shows envelope names for transactions, handles "Available Funds" for income transactions
+  - **Real-time Filtering**: Reactive filtering and sorting with filter summary and active filter indicators
+  - **Performance Optimized**: Efficient database queries with proper joins and indexing
+- **Database Integration**: Secure transaction loading with proper RLS policies and constraint handling
+  - Fixed Supabase query syntax for envelope joins using `envelopes:envelope_id` notation
+  - Comprehensive error handling for database operations
+  - Support for all transaction types defined in database schema
+- **User Experience**: Seamless transaction browsing with comprehensive search and filter capabilities
+  - Quick filter buttons for common transaction types
+  - Clear filter functionality with active filter indicators
+  - Placeholder modal for unified transaction form (to be implemented in next subtask)
+  - Consistent styling and UX patterns following established design system
+- **Testing**: Comprehensive manual testing with authentication, data loading, filtering, and modal interactions
 
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality
