@@ -430,6 +430,66 @@
 		}
 	}
 	
+	// Export transactions to CSV
+	function exportTransactions() {
+		const dataToExport = filteredTransactions
+		
+		if (dataToExport.length === 0) {
+			toastHelpers.error('No transactions to export')
+			return
+		}
+		
+		// Create CSV headers
+		const headers = [
+			'Date',
+			'Type',
+			'Description',
+			'Payee',
+			'Envelope',
+			'Category',
+			'Amount'
+		]
+		
+		// Create CSV rows
+		const rows = dataToExport.map(transaction => {
+			const envelope = envelopes.find(e => e.id === transaction.envelope_id)
+			const category = envelope ? (envelope as any).categories : null
+			
+			return [
+				new Date(transaction.date).toLocaleDateString(),
+				transaction.type,
+				`"${transaction.description.replace(/"/g, '""')}"`, // Escape quotes
+				transaction.payee ? `"${transaction.payee.replace(/"/g, '""')}"` : '',
+				envelope ? `"${envelope.name.replace(/"/g, '""')}"` : (transaction.type === 'income' ? 'Available Funds' : ''),
+				category ? `"${category.name.replace(/"/g, '""')}"` : '',
+				transaction.amount.toFixed(2)
+			]
+		})
+		
+		// Combine headers and rows
+		const csvContent = [headers, ...rows]
+			.map(row => row.join(','))
+			.join('\n')
+		
+		// Create and download file
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+		const link = document.createElement('a')
+		const url = URL.createObjectURL(blob)
+		
+		link.setAttribute('href', url)
+		link.setAttribute('download', `transactions_${new Date().toISOString().split('T')[0]}.csv`)
+		link.style.visibility = 'hidden'
+		
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+		
+		// Show success message
+		const exportCount = dataToExport.length
+		const filterText = hasActiveFilters ? ' (filtered)' : ''
+		toastHelpers.success(`Exported ${exportCount} transaction${exportCount === 1 ? '' : 's'}${filterText} to CSV`)
+	}
+	
 	// Load data on mount and when user changes
 	onMount(() => {
 		if ($user) {
@@ -502,6 +562,18 @@
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
 							</svg>
 							Add Transaction
+						</button>
+						<button
+							on:click={exportTransactions}
+							disabled={loading || transactions.length === 0}
+							class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+							title="Export transactions to CSV"
+						>
+							<svg class="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+							</svg>
+							<span class="hidden sm:inline">Export CSV</span>
+							<span class="sm:hidden">Export</span>
 						</button>
 						<button
 							on:click={refreshData}

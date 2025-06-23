@@ -132,7 +132,7 @@
 - [x] Add recent transactions preview on dashboard
 
 ### Advanced Features
-- [ ] Transaction export functionality
+- [x] Transaction export functionality
 - [ ] Transaction pagination for large datasets
 - [ ] Bulk transaction operations
 - [ ] Transaction categories and tags

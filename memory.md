@@ -132,6 +132,7 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - ✅ Transaction editing capabilities implemented
 - ✅ Transaction deletion with balance adjustments
 - ✅ Dashboard integration updates (partial - quick actions and type pre-selection complete)
+- ✅ Transaction export functionality (CSV export with filtering support)
 
 ### Task 9 Implementation Notes - Transaction System Prototypes
 - **Add Income Form**: Complete implementation with comprehensive income recording functionality
@@ -282,6 +283,33 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - **Remaining Dashboard Integration Tasks**:
   - [x] Add recent transactions preview on dashboard (COMPLETE - fully implemented and tested)
   - [ ] Create allocation prompt after income entry (future enhancement)
+
+### Task 9.6 Implementation Notes - Transaction Export Functionality
+- **CSV Export Feature**: Complete implementation of transaction data export functionality
+  - **Export Button**: Added "Export CSV" button to transactions page header between "Add Transaction" and "Refresh" buttons
+  - **Smart Button State**: Button is disabled when no transactions exist or during loading states
+  - **Filter Awareness**: Export respects all active filters (search, type, envelope, date range) and exports only filtered results
+  - **CSV Format**: Comprehensive CSV output with columns: Date, Type, Description, Payee, Envelope, Category, Amount
+  - **Data Processing**: Proper CSV formatting with quote escaping for text fields and decimal formatting for amounts
+  - **File Naming**: Auto-generated filename with current date (e.g., `transactions_2025-06-23.csv`)
+  - **User Feedback**: Toast notifications showing export success with count of exported transactions
+- **Export Function Features**:
+  - **Data Validation**: Checks for empty transaction list and shows appropriate error message
+  - **CSV Headers**: Clear column headers for easy data interpretation
+  - **Data Formatting**: Proper date formatting, currency amounts, and text field escaping
+  - **Envelope Resolution**: Resolves envelope names and categories from joined data
+  - **Available Funds Handling**: Shows "Available Funds" for income transactions without envelope assignment
+- **User Experience**:
+  - **Visual Integration**: Export button styled consistently with other header buttons
+  - **Responsive Design**: Button text adapts for mobile ("Export") vs desktop ("Export CSV")
+  - **Accessibility**: Proper button title attribute for tooltip information
+  - **Download Behavior**: Automatic file download with proper MIME type and browser compatibility
+- **Technical Implementation**:
+  - **Client-side Processing**: Pure JavaScript CSV generation without external dependencies
+  - **Memory Efficient**: Processes data in-memory without server round trips
+  - **Browser Compatibility**: Uses standard Blob API and URL.createObjectURL for file download
+  - **Error Handling**: Comprehensive error handling with user-friendly feedback
+- **Testing Results**: Successfully tested export functionality with filtered and unfiltered transaction data
 
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality
