@@ -127,8 +127,8 @@
 - [x] Allocation transactions (available funds to envelopes)
 
 ### Dashboard Integration
-- [ ] Update dashboard quick action buttons to open unified transaction form
-- [ ] Implement transaction type pre-selection from dashboard
+- [x] Update dashboard quick action buttons to open unified transaction form
+- [x] Implement transaction type pre-selection from dashboard
 - [ ] Add recent transactions preview on dashboard
 - [ ] Create allocation prompt after income entry
 

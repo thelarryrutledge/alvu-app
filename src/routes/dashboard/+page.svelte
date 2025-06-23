@@ -5,6 +5,8 @@
 	import AppLayout from '$lib/components/AppLayout.svelte'
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 	import PageLoading from '$lib/components/PageLoading.svelte'
+	import Modal from '$lib/components/Modal.svelte'
+	import AddTransactionForm from '$lib/components/AddTransactionForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -27,6 +29,10 @@
 	let autoRefreshEnabled = true
 	let refreshCountdown = 0
 	let countdownInterval: NodeJS.Timeout | null = null
+	
+	// Transaction modal state
+	let showTransactionModal = false
+	let preselectedTransactionType: 'income' | 'expense' | 'transfer' | 'allocation' | null = null
 	
 	// Loading progress tracking
 	let loadingProgress = 0
@@ -259,7 +265,8 @@
 	
 	// Quick Action Handlers
 	function handleAddIncome() {
-		goto('/income/add')
+		preselectedTransactionType = 'income'
+		showTransactionModal = true
 	}
 	
 	function handleAddExpense() {
@@ -269,9 +276,8 @@
 			goto('/envelopes')
 			return
 		}
-		// For now, show a toast message since expense pages aren't implemented yet
-		toastHelpers.info('Add Expense feature coming soon! This will navigate to the expense entry form.')
-		// Future: goto('/expenses/add')
+		preselectedTransactionType = 'expense'
+		showTransactionModal = true
 	}
 	
 	function handleTransfer() {
@@ -281,9 +287,8 @@
 			goto('/envelopes')
 			return
 		}
-		// For now, show a toast message since transfer pages aren't implemented yet
-		toastHelpers.info('Transfer feature coming soon! This will open the transfer funds dialog.')
-		// Future: open transfer modal or goto('/transfer')
+		preselectedTransactionType = 'transfer'
+		showTransactionModal = true
 	}
 	
 	function handleAllocate() {
@@ -298,9 +303,22 @@
 			goto('/envelopes')
 			return
 		}
-		// For now, show a toast message since allocation pages aren't implemented yet
-		toastHelpers.info('Allocate Funds feature coming soon! This will open the allocation interface.')
-		// Future: open allocation modal or goto('/allocate')
+		preselectedTransactionType = 'allocation'
+		showTransactionModal = true
+	}
+	
+	// Transaction modal handlers
+	function handleTransactionSuccess(event: CustomEvent<{ id: string; type: string; amount: number }>) {
+		showTransactionModal = false
+		preselectedTransactionType = null
+		// Refresh dashboard data to show updated balances
+		loadDashboardData(true)
+		// Success message is handled by the form component
+	}
+	
+	function handleTransactionCancel() {
+		showTransactionModal = false
+		preselectedTransactionType = null
 	}
 	
 	// Progress calculation helpers
@@ -1620,6 +1638,26 @@
 			</div>
 			{/if}
 		</div>
+		{/if}
+		
+		<!-- Transaction Modal -->
+		{#if showTransactionModal}
+			<Modal
+				bind:open={showTransactionModal}
+				size="xl"
+				variant="default"
+				title="Add Transaction"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+				on:close={handleTransactionCancel}
+			>
+				<AddTransactionForm
+					preselectedType={preselectedTransactionType}
+					on:success={handleTransactionSuccess}
+					on:cancel={handleTransactionCancel}
+				/>
+			</Modal>
 		{/if}
 	</AppLayout>
 </ProtectedRoute>

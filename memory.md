@@ -130,8 +130,8 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - ✅ Unified transaction form with type selection implemented
 - ✅ Transaction filtering and search functionality (already implemented)
 - ✅ Transaction editing capabilities implemented
-- ⏳ Transaction deletion with balance adjustments
-- ⏳ Dashboard integration updates
+- ✅ Transaction deletion with balance adjustments
+- ✅ Dashboard integration updates (partial - quick actions and type pre-selection complete)
 
 ### Task 9 Implementation Notes - Transaction System Prototypes
 - **Add Income Form**: Complete implementation with comprehensive income recording functionality
@@ -242,6 +242,46 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - **Income Source Changes**: Not allowed to maintain data integrity
   - **Balance Recalculation**: Future enhancement needed for complex transaction edits
 - **Testing**: Edit functionality integrated and ready for testing with actual transaction data
+
+### Task 9.4 Implementation Notes - Transaction Deletion with Balance Adjustments
+- **Delete Transaction Function**: Database function created at [`database/migrations/008_create_delete_transaction_function.sql`](database/migrations/008_create_delete_transaction_function.sql:1)
+  - **Smart Balance Handling**: Automatically reverses balance changes when transactions are deleted
+  - **Transaction Type Support**: Handles deletion for all transaction types (income, expense, transfer, allocation)
+  - **Envelope Balance Updates**: Properly adjusts envelope balances based on transaction type and amount
+  - **User Verification**: Ensures only transaction owner can delete transactions with RLS policy enforcement
+  - **Error Handling**: Comprehensive error handling for invalid transactions and constraint violations
+- **UI Integration**: Delete functionality integrated into transaction cards and pages
+  - **Delete Buttons**: Small delete icons added to transaction cards with confirmation dialogs
+  - **Confirmation Modal**: User confirmation required before deletion with clear warning messages
+  - **Real-time Updates**: Transaction list updates immediately after successful deletion
+  - **Error Feedback**: Clear error messages and user feedback via toast notifications
+- **Balance Adjustment Logic**:
+  - **Income Deletion**: Reduces available funds by transaction amount
+  - **Expense Deletion**: Adds amount back to source envelope balance
+  - **Transfer Deletion**: Reverses the transfer by adjusting both source and destination envelope balances
+  - **Allocation Deletion**: Moves amount back from envelope to available funds
+- **Database Integration**: Secure deletion operations with proper constraint handling and audit trail
+- **Testing**: Delete functionality tested across all transaction types with proper balance verification
+
+### Task 9.5 Implementation Notes - Dashboard Integration (Partial)
+- **Dashboard Quick Action Integration**: Updated dashboard to use unified transaction form instead of navigation
+  - **Modal Integration**: Added transaction modal state management with `showTransactionModal` and `preselectedTransactionType`
+  - **Handler Updates**: Modified dashboard quick action handlers to open unified transaction form:
+    - `handleAddIncome()` → opens modal with 'income' pre-selected
+    - `handleAddExpense()` → opens modal with 'expense' pre-selected
+    - `handleTransfer()` → opens modal with 'transfer' pre-selected
+    - `handleAllocate()` → opens modal with 'allocation' pre-selected
+  - **Form Pre-selection**: AddTransactionForm component accepts `preselectedType` prop for automatic type selection
+  - **Data Refresh**: Dashboard automatically refreshes after successful transaction creation to show updated balances
+  - **Validation Preservation**: Maintained existing validation logic (envelope checks, available funds checks)
+- **Component Integration**: Seamless integration of AddTransactionForm component into dashboard modal system
+  - **Event Handling**: Proper success and cancel event handling with modal state management
+  - **User Experience**: Smooth transition from dashboard quick actions to transaction creation
+  - **Responsive Design**: Modal works correctly across all device sizes
+- **Testing Results**: Browser testing confirmed modal opens correctly with proper type pre-selection
+- **Remaining Dashboard Integration Tasks**:
+  - [ ] Add recent transactions preview on dashboard (already exists but needs enhancement)
+  - [ ] Create allocation prompt after income entry (future enhancement)
 
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality
