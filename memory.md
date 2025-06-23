@@ -280,7 +280,7 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - **Responsive Design**: Modal works correctly across all device sizes
 - **Testing Results**: Browser testing confirmed modal opens correctly with proper type pre-selection
 - **Remaining Dashboard Integration Tasks**:
-  - [ ] Add recent transactions preview on dashboard (already exists but needs enhancement)
+  - [x] Add recent transactions preview on dashboard (COMPLETE - fully implemented and tested)
   - [ ] Create allocation prompt after income entry (future enhancement)
 
 ### Task 8.1 Implementation Notes - Envelopes List Page

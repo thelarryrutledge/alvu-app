@@ -129,7 +129,7 @@
 ### Dashboard Integration
 - [x] Update dashboard quick action buttons to open unified transaction form
 - [x] Implement transaction type pre-selection from dashboard
-- [ ] Add recent transactions preview on dashboard
+- [x] Add recent transactions preview on dashboard
 - [ ] Create allocation prompt after income entry
 
 ### Advanced Features
