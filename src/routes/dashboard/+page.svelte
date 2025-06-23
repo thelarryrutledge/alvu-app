@@ -259,9 +259,7 @@
 	
 	// Quick Action Handlers
 	function handleAddIncome() {
-		// For now, show a toast message since income pages aren't implemented yet
-		toastHelpers.info('Add Income feature coming soon! This will navigate to the income entry form.')
-		// Future: goto('/income/add')
+		goto('/income/add')
 	}
 	
 	function handleAddExpense() {

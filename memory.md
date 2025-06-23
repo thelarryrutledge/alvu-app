@@ -117,10 +117,40 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 ## Next Development Phase
 
 **Current**: Task 9 - Transaction System - Income Processing
-- Create add income transaction form
-- Implement income source selection
-- Add transaction amount validation
-- Create transaction date/time handling
+- ✅ Create add income transaction form
+- ✅ Implement income source selection
+- ✅ Add transaction amount validation
+- ✅ Create transaction date/time handling
+
+### Task 9.1 Implementation Notes - Add Income Transaction Form
+- **Add Income Form**: Complete implementation with comprehensive income recording functionality
+  - Full-featured form at [`/income/add`](src/routes/income/add/+page.svelte:1) following established patterns
+  - Income source integration with optional selection from user's active income sources
+  - Auto-fill amount functionality when income source is selected
+  - Comprehensive form validation with real-time feedback and error handling
+  - Transaction creation with proper database integration and RLS policies
+  - Next expected date calculation and automatic income source updates
+  - Navigation integration with dashboard allocation prompts
+- **Form Features**:
+  - **Income Source Selection**: Optional dropdown with existing income sources or one-time income option
+  - **Amount Validation**: Required field with range validation (0.01 to $1,000,000) and decimal precision
+  - **Date Validation**: Required date field with future date prevention and one-year historical limit
+  - **Description Field**: Required text field with 255 character limit for transaction description
+  - **Payee Field**: Optional field for income source identification with 100 character limit
+  - **Real-time Preview**: Selected income source information display with amount, frequency, and notes
+- **Business Logic**:
+  - **Income Processing**: Creates transaction record with type 'income' and null envelope_id (goes to available funds)
+  - **Income Source Updates**: Automatically calculates and updates next expected date based on frequency
+  - **Frequency Calculations**: Supports weekly, bi-weekly, semi-monthly, monthly, and custom frequency calculations
+  - **Dashboard Integration**: Redirects to dashboard with query parameters for allocation prompts
+- **User Experience**:
+  - **Informational Banners**: Clear explanation of how income works in the envelope system
+  - **Loading States**: Proper loading indicators for income source fetching and form submission
+  - **Error Handling**: Comprehensive error messages and user feedback via toast notifications
+  - **Next Steps Guide**: Clear explanation of post-submission workflow and allocation options
+  - **Responsive Design**: Mobile-first approach with proper form layout and navigation
+- **Database Integration**: Secure transaction creation with user verification and constraint handling
+- **Component Reuse**: Leverages existing form components ([`FormInput`](src/lib/components/FormInput.svelte:1), [`FormSelect`](src/lib/components/FormSelect.svelte:1), [`LoadingButton`](src/lib/components/LoadingButton.svelte:1))
 
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality

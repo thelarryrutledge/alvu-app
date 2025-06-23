@@ -12,7 +12,7 @@
 	// Props
 	export let id: string = '';
 	export let name: string = '';
-	export let type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' = 'text';
+	export let type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'datetime-local' | 'time' = 'text';
 	export let value: string | number = '';
 	export let placeholder: string = '';
 	export let label: string = '';
