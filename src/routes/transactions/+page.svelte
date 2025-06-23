@@ -5,6 +5,7 @@
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte'
 	import PageLoading from '$lib/components/PageLoading.svelte'
 	import Modal from '$lib/components/Modal.svelte'
+	import AddTransactionForm from '$lib/components/AddTransactionForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -350,6 +351,13 @@
 	
 	function handleAddCancel() {
 		showAddModal = false
+	}
+	
+	function handleAddSuccess(event: CustomEvent<{ id: string; type: string; amount: number }>) {
+		showAddModal = false
+		// Refresh the transactions list
+		loadTransactionsData()
+		// Show success message is handled by the form component
 	}
 	
 	// Load data on mount and when user changes
@@ -823,7 +831,7 @@
 		</div>
 		{/if}
 		
-		<!-- Add Transaction Modal (Placeholder) -->
+		<!-- Add Transaction Modal -->
 		{#if showAddModal}
 			<Modal
 				bind:open={showAddModal}
@@ -835,22 +843,10 @@
 				closeOnEscape={true}
 				on:close={handleAddCancel}
 			>
-				<div class="p-6 text-center">
-					<svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-					</svg>
-					<h3 class="text-lg font-medium text-gray-900 mb-2">Unified Transaction Form</h3>
-					<p class="text-sm text-gray-600 mb-6">
-						The unified transaction form will be implemented in the next subtask.
-						This will allow you to add income, expenses, transfers, and allocations from a single interface.
-					</p>
-					<button
-						on:click={handleAddCancel}
-						class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-					>
-						Close
-					</button>
-				</div>
+				<AddTransactionForm
+					on:success={handleAddSuccess}
+					on:cancel={handleAddCancel}
+				/>
 			</Modal>
 		{/if}
 	</AppLayout>

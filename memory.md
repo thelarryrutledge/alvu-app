@@ -127,8 +127,9 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 **Current**: Task 9 - Complete Transaction System (Merged with Task 15)
 - ✅ Transaction prototypes created (income and expense forms)
 - ✅ Transactions page with history display created
-- ⏳ Unified transaction system implementation
-- ⏳ Transaction history and management
+- ✅ Unified transaction form with type selection implemented
+- ⏳ Transaction filtering and search functionality
+- ⏳ Transaction editing capabilities
 - ⏳ Dashboard integration updates
 
 ### Task 9 Implementation Notes - Transaction System Prototypes
@@ -189,6 +190,29 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - Placeholder modal for unified transaction form (to be implemented in next subtask)
   - Consistent styling and UX patterns following established design system
 - **Testing**: Comprehensive manual testing with authentication, data loading, filtering, and modal interactions
+
+### Task 9.2 Implementation Notes - Unified Transaction Form
+- **AddTransactionForm Component**: Complete unified transaction form at [`/src/lib/components/AddTransactionForm.svelte`](src/lib/components/AddTransactionForm.svelte:1)
+  - **Single Interface**: One form handles all four transaction types (income, expense, transfer, allocation)
+  - **Dynamic Type Selection**: Visual button grid with icons and color coding for transaction type selection
+  - **Adaptive Form Fields**: Form fields change dynamically based on selected transaction type
+  - **Comprehensive Validation**: Client-side validation with real-time error feedback for all transaction types
+  - **Database Integration**: Uses existing database functions for transaction processing with proper error handling
+  - **Component Reuse**: Leverages existing form components (FormInput, FormSelect, FormTextarea, LoadingButton)
+- **Transaction Type Features**:
+  - **Income**: Income source selection with amount auto-fill, goes to available funds bucket
+  - **Expense**: Envelope selection with balance display, payee field for tracking
+  - **Transfer**: Source and destination envelope selection with validation to prevent same-envelope transfers
+  - **Allocation**: Single envelope selection for moving funds from available bucket to envelopes
+- **Form Functionality**:
+  - **Real-time Validation**: Immediate feedback on form errors with type-specific validation rules
+  - **Data Loading**: Loads envelopes, categories, and income sources with proper error handling
+  - **Smart Defaults**: Pre-fills today's date, clears type-specific fields on type change
+  - **User Experience**: Loading states, success/error feedback, and intuitive navigation
+  - **Responsive Design**: Mobile-first approach with proper field layout and touch-friendly interface
+- **Database Operations**: Secure transaction creation using existing RPC functions with comprehensive error handling
+- **Integration**: Seamlessly integrated into transactions page modal with proper event handling
+- **Testing Results**: All transaction types working correctly with proper form adaptation and validation
 
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality
