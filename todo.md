@@ -118,13 +118,13 @@
 - [x] Implement unified "Add Transaction" form with type selection
 - [x] Add transaction filtering and search functionality
 - [x] Create transaction editing capabilities
-- [ ] Implement transaction deletion with balance adjustments
+- [x] Implement transaction deletion with balance adjustments
 
 ### Transaction Types Implementation
-- [ ] Income transactions (refactor existing to unified form)
-- [ ] Expense transactions (refactor existing to unified form)
-- [ ] Transfer transactions (between envelopes)
-- [ ] Allocation transactions (available funds to envelopes)
+- [x] Income transactions (refactor existing to unified form)
+- [x] Expense transactions (refactor existing to unified form)
+- [x] Transfer transactions (between envelopes)
+- [x] Allocation transactions (available funds to envelopes)
 
 ### Dashboard Integration
 - [ ] Update dashboard quick action buttons to open unified transaction form

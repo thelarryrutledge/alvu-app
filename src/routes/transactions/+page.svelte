@@ -24,6 +24,9 @@
 	let showAddModal = false
 	let showEditModal = false
 	let editingTransaction: Transaction | null = null
+	let showDeleteModal = false
+	let deletingTransaction: Transaction | null = null
+	let deleting = false
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -380,6 +383,51 @@
 	function handleEditCancel() {
 		showEditModal = false
 		editingTransaction = null
+	}
+	
+	// Delete transaction handlers
+	function handleDeleteTransaction(transaction: Transaction) {
+		deletingTransaction = transaction
+		showDeleteModal = true
+	}
+	
+	function handleDeleteCancel() {
+		showDeleteModal = false
+		deletingTransaction = null
+	}
+	
+	async function handleDeleteConfirm() {
+		if (!deletingTransaction || !$user) {
+			return
+		}
+		
+		deleting = true
+		
+		try {
+			// Call the database function to delete transaction with balance adjustments
+			const { error } = await supabase.rpc('delete_transaction_with_balance_adjustment', {
+				transaction_id: deletingTransaction.id,
+				user_id: $user.id
+			})
+			
+			if (error) {
+				console.error('Transaction deletion error:', error)
+				toastHelpers.error(error.message || 'Failed to delete transaction')
+				return
+			}
+			
+			toastHelpers.success('Transaction deleted successfully')
+			showDeleteModal = false
+			deletingTransaction = null
+			
+			// Refresh the transactions list
+			await loadTransactionsData()
+		} catch (error) {
+			console.error('Error deleting transaction:', error)
+			toastHelpers.error('Failed to delete transaction')
+		} finally {
+			deleting = false
+		}
 	}
 	
 	// Load data on mount and when user changes
@@ -850,6 +898,15 @@
 																					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
 																				</svg>
 																			</button>
+																			<button
+																				on:click={() => handleDeleteTransaction(transaction)}
+																				class="inline-flex items-center p-1.5 border border-red-300 rounded-md shadow-sm text-xs font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+																				title="Delete transaction"
+																			>
+																				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+																				</svg>
+																			</button>
 																		</div>
 																	</div>
 																</div>
@@ -905,6 +962,118 @@
 					on:success={handleEditSuccess}
 					on:cancel={handleEditCancel}
 				/>
+			</Modal>
+		{/if}
+		
+		<!-- Delete Confirmation Modal -->
+		{#if showDeleteModal && deletingTransaction}
+			<Modal
+				bind:open={showDeleteModal}
+				size="md"
+				variant="danger"
+				title="Delete Transaction"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+				on:close={handleDeleteCancel}
+			>
+				<div class="space-y-4">
+					<div class="flex items-center">
+						<div class="flex-shrink-0 mr-4">
+							<div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+								<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+								</svg>
+							</div>
+						</div>
+						<div class="flex-1">
+							<h3 class="text-lg font-medium text-gray-900">Are you sure?</h3>
+							<p class="text-sm text-gray-500 mt-1">
+								This action cannot be undone. The transaction will be permanently deleted and any balance adjustments will be reversed.
+							</p>
+						</div>
+					</div>
+					
+					<!-- Transaction Details -->
+					<div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+						<div class="flex items-center justify-between">
+							<div class="flex-1">
+								<p class="text-sm font-medium text-gray-900">{deletingTransaction.description}</p>
+								<div class="flex items-center mt-1 text-xs text-gray-500 space-x-2">
+									<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getTransactionTypeBadge(deletingTransaction.type)}">
+										{deletingTransaction.type}
+									</span>
+									{#if deletingTransaction.payee}
+										<span>•</span>
+										<span>{deletingTransaction.payee}</span>
+									{/if}
+									<span>•</span>
+									<span>{getEnvelopeName(deletingTransaction)}</span>
+								</div>
+							</div>
+							<div class="text-right">
+								<p class="text-sm font-semibold {deletingTransaction.type === 'income' ? 'text-green-600' : deletingTransaction.type === 'expense' ? 'text-red-600' : 'text-gray-900'}">
+									{deletingTransaction.type === 'expense' ? '-' : '+'}{formatCurrency(deletingTransaction.amount)}
+								</p>
+								<p class="text-xs text-gray-500 mt-1">
+									{new Date(deletingTransaction.date).toLocaleDateString()}
+								</p>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Warning Message -->
+					<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+						<div class="flex">
+							<svg class="w-5 h-5 text-yellow-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+							</svg>
+							<div class="text-sm text-yellow-800">
+								<p class="font-medium">Balance Impact:</p>
+								<p class="mt-1">
+									{#if deletingTransaction.type === 'income'}
+										Available funds will be reduced by {formatCurrency(deletingTransaction.amount)}
+									{:else if deletingTransaction.type === 'expense'}
+										{getEnvelopeName(deletingTransaction)} balance will be increased by {formatCurrency(deletingTransaction.amount)}
+									{:else if deletingTransaction.type === 'allocation'}
+										Available funds will be increased and {getEnvelopeName(deletingTransaction)} balance will be reduced by {formatCurrency(deletingTransaction.amount)}
+									{:else if deletingTransaction.type === 'transfer'}
+										Envelope balances will be adjusted to reverse the transfer
+									{/if}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Action Buttons -->
+				<div slot="footer" class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
+					<button
+						type="button"
+						on:click={handleDeleteCancel}
+						disabled={deleting}
+						class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						Cancel
+					</button>
+					
+					<button
+						type="button"
+						on:click={handleDeleteConfirm}
+						disabled={deleting}
+						class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						{#if deleting}
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							Deleting...
+						{:else}
+							Delete Transaction
+						{/if}
+					</button>
+				</div>
 			</Modal>
 		{/if}
 	</AppLayout>
