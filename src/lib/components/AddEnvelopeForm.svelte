@@ -155,8 +155,8 @@
 		const errors: string[] = []
 		
 		if (envelopeType === 'debt') {
-			if (value > 0) {
-				errors.push('Debt envelope balance must be zero or negative')
+			if (value < 0) {
+				errors.push('Remaining balance cannot be negative')
 			}
 		} else {
 			if (value < 0) {
@@ -506,15 +506,15 @@
 			
 			<!-- Initial Balance -->
 			<FormInput
-				label="Initial Balance"
+				label={type === 'debt' ? 'Remaining Balance Owed' : 'Initial Balance'}
 				bind:value={balance}
 				type="number"
 				step="0.01"
-				min={type === 'debt' ? -1000000 : 0}
-				max={type === 'debt' ? 0 : 1000000}
+				min="0"
+				max="1000000"
 				required={true}
 				error={errors.balance}
-				hint={type === 'debt' ? 'Enter the current debt amount as a negative number' : 'Enter the starting balance for this envelope'}
+				hint={type === 'debt' ? 'Enter how much you still owe on this debt (positive amount)' : 'Enter the starting balance for this envelope'}
 			/>
 		</div>
 		
@@ -622,13 +622,28 @@
 					{#if type === 'savings' && targetAmount && targetAmount > 0}
 						<div class="flex items-center space-x-2 ml-4">
 							<div class="w-24 bg-gray-200 rounded-full h-2">
-								<div 
-									class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+								<div
+									class="bg-green-600 h-2 rounded-full transition-all duration-300"
 									style="width: {Math.min(100, Math.max(0, (balance / targetAmount) * 100))}%"
 								></div>
 							</div>
 							<span class="text-xs text-gray-600 w-10 text-right">
 								{Math.round(Math.min(100, Math.max(0, (balance / targetAmount) * 100)))}%
+							</span>
+						</div>
+					{/if}
+					
+					<!-- Progress Bar for Debt (reverse progress showing amount owed) -->
+					{#if type === 'debt' && balance > 0}
+						<div class="flex items-center space-x-2 ml-4">
+							<div class="w-24 bg-red-200 rounded-full h-2">
+								<div
+									class="bg-red-600 h-2 rounded-full transition-all duration-300"
+									style="width: 100%"
+								></div>
+							</div>
+							<span class="text-xs text-gray-600 w-10 text-right">
+								100%
 							</span>
 						</div>
 					{/if}

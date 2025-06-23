@@ -731,6 +731,21 @@
 																</div>
 															{/if}
 															
+															<!-- Progress Bar for Debt (shows amount owed) -->
+															{#if envelope.type === 'debt' && envelope.balance < 0}
+																<div class="flex items-center space-x-2">
+																	<div class="w-24 bg-red-200 rounded-full h-2">
+																		<div
+																			class="bg-red-600 h-2 rounded-full transition-all duration-300"
+																			style="width: 100%"
+																		></div>
+																	</div>
+																	<span class="text-xs text-gray-600 w-10 text-right">
+																		Owed
+																	</span>
+																</div>
+															{/if}
+															
 															<!-- Actions -->
 															<div class="flex items-center space-x-2">
 																<button

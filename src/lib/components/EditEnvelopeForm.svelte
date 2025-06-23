@@ -125,8 +125,8 @@
 		const errors: string[] = []
 		
 		if (envelopeType === 'debt') {
-			if (value > 0) {
-				errors.push('Debt envelope balance must be zero or negative')
+			if (value < 0) {
+				errors.push('Remaining balance cannot be negative')
 			}
 		} else {
 			if (value < 0) {
