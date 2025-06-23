@@ -133,7 +133,7 @@
 
 ### Advanced Features
 - [x] Transaction export functionality
-- [ ] Transaction pagination for large datasets
+- [x] Transaction pagination for large datasets
 - [ ] Bulk transaction operations
 - [ ] Transaction categories and tags
 

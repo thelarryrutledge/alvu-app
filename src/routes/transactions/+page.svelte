@@ -36,6 +36,12 @@
 	let sortBy: 'date' | 'amount' | 'type' | 'payee' = 'date'
 	let sortOrder: 'asc' | 'desc' = 'desc'
 	
+	// Pagination state
+	let currentPage = 1
+	let pageSize = 50 // Number of transactions per page
+	let totalTransactions = 0
+	let totalPages = 1
+	
 	// Load transactions and related data
 	async function loadTransactionsData() {
 		if (!$user) return
@@ -295,17 +301,109 @@
 		dateFilter = 'all'
 		sortBy = 'date'
 		sortOrder = 'desc'
+		currentPage = 1 // Reset to first page when clearing filters
+	}
+	
+	// Pagination functions
+	function goToPage(page: number) {
+		if (page >= 1 && page <= totalPages) {
+			currentPage = page
+		}
+	}
+	
+	function goToFirstPage() {
+		currentPage = 1
+	}
+	
+	function goToLastPage() {
+		currentPage = totalPages
+	}
+	
+	function goToPreviousPage() {
+		if (currentPage > 1) {
+			currentPage--
+		}
+	}
+	
+	function goToNextPage() {
+		if (currentPage < totalPages) {
+			currentPage++
+		}
+	}
+	
+	// Get paginated transactions
+	function paginateTransactions(txns: Transaction[]): Transaction[] {
+		const startIndex = (currentPage - 1) * pageSize
+		const endIndex = startIndex + pageSize
+		return txns.slice(startIndex, endIndex)
+	}
+	
+	// Calculate pagination info
+	function calculatePagination(filteredCount: number) {
+		totalTransactions = filteredCount
+		totalPages = Math.ceil(totalTransactions / pageSize)
+		
+		// Ensure current page is valid
+		if (currentPage > totalPages && totalPages > 0) {
+			currentPage = totalPages
+		} else if (currentPage < 1) {
+			currentPage = 1
+		}
+	}
+	
+	// Get page numbers for pagination display
+	function getPageNumbers(): number[] {
+		const pages: number[] = []
+		const maxVisiblePages = 5
+		
+		if (totalPages <= maxVisiblePages) {
+			// Show all pages if total is small
+			for (let i = 1; i <= totalPages; i++) {
+				pages.push(i)
+			}
+		} else {
+			// Show pages around current page
+			const halfVisible = Math.floor(maxVisiblePages / 2)
+			let startPage = Math.max(1, currentPage - halfVisible)
+			let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+			
+			// Adjust start if we're near the end
+			if (endPage - startPage < maxVisiblePages - 1) {
+				startPage = Math.max(1, endPage - maxVisiblePages + 1)
+			}
+			
+			for (let i = startPage; i <= endPage; i++) {
+				pages.push(i)
+			}
+		}
+		
+		return pages
 	}
 	
 	// Get filter summary text
 	function getFilterSummary(filtered: Transaction[]): string {
 		const total = transactions.length
-		const showing = filtered.length
+		const filteredTotal = filtered.length
+		const startIndex = (currentPage - 1) * pageSize + 1
+		const endIndex = Math.min(currentPage * pageSize, filteredTotal)
+		const showing = Math.min(pageSize, filteredTotal - (currentPage - 1) * pageSize)
 		
-		if (total === showing) {
-			return `Showing all ${total} transaction${total === 1 ? '' : 's'}`
+		if (filteredTotal === 0) {
+			return 'No transactions found'
+		}
+		
+		if (showPagination) {
+			if (total === filteredTotal) {
+				return `Showing ${startIndex}-${endIndex} of ${total} transaction${total === 1 ? '' : 's'}`
+			} else {
+				return `Showing ${startIndex}-${endIndex} of ${filteredTotal} filtered transaction${filteredTotal === 1 ? '' : 's'} (${total} total)`
+			}
 		} else {
-			return `Showing ${showing} of ${total} transaction${total === 1 ? '' : 's'}`
+			if (total === filteredTotal) {
+				return `Showing all ${total} transaction${total === 1 ? '' : 's'}`
+			} else {
+				return `Showing ${filteredTotal} of ${total} transaction${total === 1 ? '' : 's'}`
+			}
 		}
 	}
 	
@@ -505,8 +603,15 @@
 	// Reactive values
 	$: isNewUser = !loading && transactions.length === 0
 	$: filteredTransactions = filterTransactions(transactions)
-	$: groupedTransactions = groupTransactionsByDate(filteredTransactions)
+	$: {
+		// Calculate pagination when filtered transactions change
+		calculatePagination(filteredTransactions.length)
+	}
+	$: paginatedTransactions = paginateTransactions(filteredTransactions)
+	$: groupedTransactions = groupTransactionsByDate(paginatedTransactions)
 	$: hasActiveFilters = searchQuery.trim() !== '' || typeFilter !== 'all' || envelopeFilter !== 'all' || dateFilter !== 'all' || sortBy !== 'date' || sortOrder !== 'desc'
+	$: pageNumbers = getPageNumbers()
+	$: showPagination = totalPages > 1
 	
 	// Calculate summary statistics
 	$: totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
@@ -813,6 +918,22 @@
 									</select>
 								</div>
 								
+								<!-- Page Size -->
+								<div class="flex-1">
+									<label for="page-size" class="block text-sm font-medium text-gray-700 mb-1">Per Page</label>
+									<select
+										id="page-size"
+										bind:value={pageSize}
+										on:change={() => currentPage = 1}
+										class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+									>
+										<option value={25}>25</option>
+										<option value={50}>50</option>
+										<option value={100}>100</option>
+										<option value={200}>200</option>
+									</select>
+								</div>
+								
 								<!-- Clear Filters -->
 								{#if hasActiveFilters}
 									<div class="flex items-end">
@@ -831,7 +952,13 @@
 							
 							<!-- Filter Summary -->
 							<div class="flex items-center justify-between text-sm text-gray-600 pt-2 border-t border-gray-200">
-								<span>{getFilterSummary(filteredTransactions)}</span>
+								<span>
+									{#if showPagination}
+										{filteredTransactions.length} transaction{filteredTransactions.length === 1 ? '' : 's'} found
+									{:else}
+										{getFilterSummary(filteredTransactions)}
+									{/if}
+								</span>
 								{#if hasActiveFilters}
 									<span class="text-blue-600 font-medium">Filters applied</span>
 								{/if}
@@ -990,6 +1117,79 @@
 										</div>
 									</div>
 								{/each}
+							</div>
+						{/if}
+						
+						<!-- Pagination -->
+						{#if showPagination}
+							<div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-4">
+								<!-- Pagination Info -->
+								<div class="text-sm text-gray-700">
+									{getFilterSummary(filteredTransactions)}
+								</div>
+								
+								<!-- Pagination Controls -->
+								<div class="flex items-center space-x-2">
+									<!-- First Page -->
+									<button
+										on:click={goToFirstPage}
+										disabled={currentPage === 1}
+										class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										title="First page"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+										</svg>
+									</button>
+									
+									<!-- Previous Page -->
+									<button
+										on:click={goToPreviousPage}
+										disabled={currentPage === 1}
+										class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										title="Previous page"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+										</svg>
+									</button>
+									
+									<!-- Page Numbers -->
+									<div class="flex items-center space-x-1">
+										{#each pageNumbers as pageNum}
+											<button
+												on:click={() => goToPage(pageNum)}
+												class="inline-flex items-center px-3 py-2 border text-sm font-medium rounded-md transition-colors duration-200 {pageNum === currentPage ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50'}"
+											>
+												{pageNum}
+											</button>
+										{/each}
+									</div>
+									
+									<!-- Next Page -->
+									<button
+										on:click={goToNextPage}
+										disabled={currentPage === totalPages}
+										class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										title="Next page"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+										</svg>
+									</button>
+									
+									<!-- Last Page -->
+									<button
+										on:click={goToLastPage}
+										disabled={currentPage === totalPages}
+										class="inline-flex items-center px-2 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										title="Last page"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+										</svg>
+									</button>
+								</div>
 							</div>
 						{/if}
 					</section>
