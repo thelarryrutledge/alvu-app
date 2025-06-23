@@ -6,6 +6,7 @@
 	import PageLoading from '$lib/components/PageLoading.svelte'
 	import Modal from '$lib/components/Modal.svelte'
 	import AddTransactionForm from '$lib/components/AddTransactionForm.svelte'
+	import EditTransactionForm from '$lib/components/EditTransactionForm.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -21,6 +22,8 @@
 	let hasError = false
 	let errorMessage = ''
 	let showAddModal = false
+	let showEditModal = false
+	let editingTransaction: Transaction | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -358,6 +361,25 @@
 		// Refresh the transactions list
 		loadTransactionsData()
 		// Show success message is handled by the form component
+	}
+	
+	// Edit transaction handlers
+	function handleEditTransaction(transaction: Transaction) {
+		editingTransaction = transaction
+		showEditModal = true
+	}
+	
+	function handleEditSuccess(event: CustomEvent<{ id: string; type: string; amount: number }>) {
+		showEditModal = false
+		editingTransaction = null
+		// Refresh the transactions list
+		loadTransactionsData()
+		// Show success message is handled by the form component
+	}
+	
+	function handleEditCancel() {
+		showEditModal = false
+		editingTransaction = null
 	}
 	
 	// Load data on mount and when user changes
@@ -805,14 +827,30 @@
 																		</div>
 																	</div>
 																	
-																	<!-- Amount -->
-																	<div class="flex-shrink-0 ml-4 text-right">
-																		<p class="text-sm font-semibold {transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : 'text-gray-900'}">
-																			{transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
-																		</p>
-																		<p class="text-xs text-gray-500 mt-1">
-																			{new Date(transaction.date).toLocaleDateString()}
-																		</p>
+																	<!-- Amount and Actions -->
+																	<div class="flex items-center space-x-4">
+																		<!-- Amount -->
+																		<div class="text-right">
+																			<p class="text-sm font-semibold {transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : 'text-gray-900'}">
+																				{transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
+																			</p>
+																			<p class="text-xs text-gray-500 mt-1">
+																				{new Date(transaction.date).toLocaleDateString()}
+																			</p>
+																		</div>
+																		
+																		<!-- Action Buttons -->
+																		<div class="flex items-center space-x-2">
+																			<button
+																				on:click={() => handleEditTransaction(transaction)}
+																				class="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+																				title="Edit transaction"
+																			>
+																				<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+																				</svg>
+																			</button>
+																		</div>
 																	</div>
 																</div>
 															</div>
@@ -846,6 +884,26 @@
 				<AddTransactionForm
 					on:success={handleAddSuccess}
 					on:cancel={handleAddCancel}
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Edit Transaction Modal -->
+		{#if showEditModal && editingTransaction}
+			<Modal
+				bind:open={showEditModal}
+				size="xl"
+				variant="default"
+				title="Edit Transaction"
+				showCloseButton={true}
+				closeOnBackdrop={false}
+				closeOnEscape={true}
+				on:close={handleEditCancel}
+			>
+				<EditTransactionForm
+					transaction={editingTransaction}
+					on:success={handleEditSuccess}
+					on:cancel={handleEditCancel}
 				/>
 			</Modal>
 		{/if}

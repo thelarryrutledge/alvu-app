@@ -128,8 +128,9 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - ✅ Transaction prototypes created (income and expense forms)
 - ✅ Transactions page with history display created
 - ✅ Unified transaction form with type selection implemented
-- ⏳ Transaction filtering and search functionality
-- ⏳ Transaction editing capabilities
+- ✅ Transaction filtering and search functionality (already implemented)
+- ✅ Transaction editing capabilities implemented
+- ⏳ Transaction deletion with balance adjustments
 - ⏳ Dashboard integration updates
 
 ### Task 9 Implementation Notes - Transaction System Prototypes
@@ -213,6 +214,34 @@ Alvu is a Progressive Web Application for envelope-based budget management built
 - **Database Operations**: Secure transaction creation using existing RPC functions with comprehensive error handling
 - **Integration**: Seamlessly integrated into transactions page modal with proper event handling
 - **Testing Results**: All transaction types working correctly with proper form adaptation and validation
+
+### Task 9.3 Implementation Notes - Transaction Editing Capabilities
+- **EditTransactionForm Component**: Complete transaction editing form at [`/src/lib/components/EditTransactionForm.svelte`](src/lib/components/EditTransactionForm.svelte:1)
+  - **Pre-populated Form**: Form fields automatically populated with existing transaction data
+  - **Type-specific Editing**: Different editing capabilities based on transaction type
+  - **Read-only Transaction Type**: Transaction type cannot be changed during editing (prevents data integrity issues)
+  - **Comprehensive Validation**: Client-side validation with real-time error feedback
+  - **Database Integration**: Direct database updates with proper error handling and user feedback
+- **Transaction Type Editing Support**:
+  - **Income**: Can edit amount, description, and date (income source cannot be changed)
+  - **Expense**: Can edit amount, description, date, envelope, and payee
+  - **Transfer**: Currently disabled for editing (requires complex balance adjustments)
+  - **Allocation**: Can edit amount, description, date, and destination envelope
+- **User Interface Integration**:
+  - **Edit Buttons**: Small edit icons added to each transaction card in the transaction history
+  - **Modal Integration**: Edit form opens in a modal with proper event handling
+  - **Visual Feedback**: Clear indication of transaction type with icons and colors
+  - **Responsive Design**: Mobile-friendly edit interface with proper touch targets
+- **Data Integrity Features**:
+  - **User Verification**: Ensures only transaction owner can edit transactions
+  - **Constraint Validation**: Validates all business rules before allowing updates
+  - **Error Handling**: Comprehensive error messages and user feedback
+  - **Success Feedback**: Clear confirmation when transactions are updated successfully
+- **Limitations and Future Enhancements**:
+  - **Transfer Editing**: Currently disabled due to complexity of balance adjustments
+  - **Income Source Changes**: Not allowed to maintain data integrity
+  - **Balance Recalculation**: Future enhancement needed for complex transaction edits
+- **Testing**: Edit functionality integrated and ready for testing with actual transaction data
 
 ### Task 8.1 Implementation Notes - Envelopes List Page
 - **Envelopes List Page**: Complete implementation with category grouping functionality

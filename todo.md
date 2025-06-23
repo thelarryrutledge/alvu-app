@@ -116,8 +116,8 @@
 ### Unified Transaction System
 - [x] Create transactions page with history display
 - [x] Implement unified "Add Transaction" form with type selection
-- [ ] Add transaction filtering and search functionality
-- [ ] Create transaction editing capabilities
+- [x] Add transaction filtering and search functionality
+- [x] Create transaction editing capabilities
 - [ ] Implement transaction deletion with balance adjustments
 
 ### Transaction Types Implementation
