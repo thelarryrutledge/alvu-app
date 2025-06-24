@@ -1,5 +1,5 @@
 // Cache version updated by deployment script
-const CACHE_VERSION = 1750722368211
+const CACHE_VERSION = 1750723467841
 const CACHE_NAME = `alvu-v${CACHE_VERSION}`
 const STATIC_CACHE_URLS = [
 	'/',
