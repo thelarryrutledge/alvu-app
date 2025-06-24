@@ -9,6 +9,7 @@
 	import EditEnvelopeForm from '$lib/components/EditEnvelopeForm.svelte'
 	import DeleteEnvelopeModal from '$lib/components/DeleteEnvelopeModal.svelte'
 	import SavingsProgressBar from '$lib/components/SavingsProgressBar.svelte'
+	import GoalAchievementNotifier from '$lib/components/GoalAchievementNotifier.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -324,6 +325,12 @@
 
 <ProtectedRoute>
 	<AppLayout title="Envelopes - Alvu">
+		<!-- Goal Achievement Notifier - monitors envelope changes for goal achievements -->
+		<GoalAchievementNotifier
+			{envelopes}
+			enabled={!loading && !initialLoad}
+		/>
+		
 		{#if initialLoad && loading}
 			<PageLoading
 				title="Loading Envelopes"

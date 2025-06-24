@@ -582,16 +582,33 @@ Alvu is a Progressive Web Application for envelope-based budget management built
   - **Recommendation System**: Displays daily/weekly/monthly savings targets to reach goals
   - **Responsive Design**: Mobile-friendly with adaptive text and layout
   - **TypeScript Integration**: Full type safety with proper interface definitions
-- **Enhanced Envelopes Integration**: Updated envelopes page to use new progress calculation system
+- **Goal Achievement Notification System**: Complete notification system at [`src/lib/utils/goalNotifications.ts`](src/lib/utils/goalNotifications.ts:1)
+  - **Notification Types**: Achievement (goal completion), milestone (25%, 50%, 75%), warning (behind schedule), encouragement
+  - **Smart Detection**: Compares current vs previous progress to detect new achievements and milestones
+  - **Message Variety**: Multiple randomized messages for each notification type to avoid repetition
+  - **Notification Preferences**: Configurable preferences for enabling/disabling different notification types
+  - **Warning System**: Detects when users are behind schedule or approaching deadlines with low progress
+  - **Toast Integration**: Seamless integration with existing toast notification system
+  - **Batch Processing**: Handles multiple notifications with staggered timing to avoid overwhelming users
+- **GoalAchievementNotifier Component**: Functional monitoring component at [`src/lib/components/GoalAchievementNotifier.svelte`](src/lib/components/GoalAchievementNotifier.svelte:1)
+  - **Automatic Monitoring**: Watches envelope changes and automatically triggers achievement checks
+  - **Progress Tracking**: Maintains previous progress state to detect changes and new achievements
+  - **Event-Driven Architecture**: Reactive monitoring that responds to envelope data updates
+  - **Error Handling**: Comprehensive error handling with graceful degradation
+  - **Performance Optimized**: Efficient progress comparison and notification queuing
+  - **Integration Ready**: Seamlessly integrates into existing envelope management pages
+- **Enhanced Envelopes Integration**: Updated envelopes page to use new progress calculation and notification systems
   - **Progress Bar Integration**: Replaced basic progress calculation with comprehensive SavingsProgressBar component
+  - **Notification Integration**: Added GoalAchievementNotifier component for automatic achievement detection
   - **Real-time Calculations**: Dynamic progress updates based on current balance and target amounts
   - **Visual Improvements**: Enhanced progress display with better color coding and status indicators
   - **Target Date Display**: Shows target dates and relative time information for savings goals
-- **Testing and Validation**: Comprehensive testing of savings goal functionality
-  - **Browser Testing**: Verified progress calculations work correctly with existing savings envelopes
+- **Testing and Validation**: Comprehensive testing of savings goal and notification functionality
+  - **Browser Testing**: Verified progress calculations and notification system work correctly with existing savings envelopes
   - **Visual Verification**: Confirmed progress bars display accurate percentages and status colors
-  - **Edge Case Testing**: Tested with completed goals (100%), new goals (0%), and partial progress
-  - **Integration Testing**: Verified seamless integration with existing envelope management system
+  - **Notification Testing**: Created comprehensive test suite for notification triggers and message variety
+  - **Edge Case Testing**: Tested with completed goals (100%), new goals (0%), partial progress, and multiple milestones
+  - **Integration Testing**: Verified seamless integration with existing envelope management and transaction systems
 
 ## MVP Constraints
 
