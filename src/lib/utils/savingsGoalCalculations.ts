@@ -156,6 +156,164 @@ export function calculateSavingsGoalProjections(
 }
 
 /**
+ * Calculate what-if scenarios for different contribution amounts
+ */
+export function calculateWhatIfScenarios(
+	currentAmount: number,
+	targetAmount: number,
+	targetDate: string | Date,
+	contributionOptions: number[]
+): Array<{
+	monthlyContribution: number
+	projectedCompletionDate: Date
+	monthsToComplete: number
+	willMeetTarget: boolean
+	surplus?: number
+	shortfall?: number
+}> {
+	const target = new Date(targetDate)
+	const now = new Date()
+	const remainingAmount = Math.max(0, targetAmount - currentAmount)
+	
+	return contributionOptions.map(monthlyContribution => {
+		if (monthlyContribution <= 0) {
+			return {
+				monthlyContribution,
+				projectedCompletionDate: new Date(2099, 11, 31), // Far future date
+				monthsToComplete: Infinity,
+				willMeetTarget: false,
+				shortfall: remainingAmount
+			}
+		}
+		
+		const monthsToComplete = remainingAmount / monthlyContribution
+		const projectedCompletionDate = new Date(now.getTime() + (monthsToComplete * 30 * 24 * 60 * 60 * 1000))
+		
+		const monthsToTarget = Math.max(0, (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth()))
+		const projectedAmountByTarget = currentAmount + (monthlyContribution * monthsToTarget)
+		
+		const willMeetTarget = projectedCompletionDate <= target
+		
+		let surplus: number | undefined
+		let shortfall: number | undefined
+		
+		if (projectedAmountByTarget >= targetAmount) {
+			surplus = projectedAmountByTarget - targetAmount
+		} else {
+			shortfall = targetAmount - projectedAmountByTarget
+		}
+		
+		return {
+			monthlyContribution,
+			projectedCompletionDate,
+			monthsToComplete: Math.ceil(monthsToComplete),
+			willMeetTarget,
+			surplus,
+			shortfall
+		}
+	})
+}
+
+/**
+ * Calculate optimal contribution amount to meet target date
+ */
+export function calculateOptimalContribution(
+	currentAmount: number,
+	targetAmount: number,
+	targetDate: string | Date
+): {
+	monthlyAmount: number
+	weeklyAmount: number
+	dailyAmount: number
+	totalRequired: number
+	monthsAvailable: number
+} {
+	const target = new Date(targetDate)
+	const now = new Date()
+	const remainingAmount = Math.max(0, targetAmount - currentAmount)
+	const monthsAvailable = Math.max(1, (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth()))
+	
+	const monthlyAmount = remainingAmount / monthsAvailable
+	const weeklyAmount = monthlyAmount / 4.33
+	const dailyAmount = monthlyAmount / 30
+	
+	return {
+		monthlyAmount,
+		weeklyAmount,
+		dailyAmount,
+		totalRequired: remainingAmount,
+		monthsAvailable
+	}
+}
+
+/**
+ * Calculate goal velocity (rate of progress)
+ */
+export function calculateGoalVelocity(
+	progressHistory: Array<{ date: Date; amount: number }>
+): {
+	dailyVelocity: number
+	weeklyVelocity: number
+	monthlyVelocity: number
+	trend: 'accelerating' | 'decelerating' | 'steady'
+	confidence: number
+} {
+	if (progressHistory.length < 2) {
+		return {
+			dailyVelocity: 0,
+			weeklyVelocity: 0,
+			monthlyVelocity: 0,
+			trend: 'steady',
+			confidence: 0
+		}
+	}
+	
+	// Sort by date
+	const sortedHistory = [...progressHistory].sort((a, b) => a.date.getTime() - b.date.getTime())
+	
+	// Calculate daily velocity
+	const firstEntry = sortedHistory[0]
+	const lastEntry = sortedHistory[sortedHistory.length - 1]
+	const daysDiff = Math.max(1, (lastEntry.date.getTime() - firstEntry.date.getTime()) / (24 * 60 * 60 * 1000))
+	const amountDiff = lastEntry.amount - firstEntry.amount
+	
+	const dailyVelocity = amountDiff / daysDiff
+	const weeklyVelocity = dailyVelocity * 7
+	const monthlyVelocity = dailyVelocity * 30
+	
+	// Calculate trend
+	let trend: 'accelerating' | 'decelerating' | 'steady' = 'steady'
+	if (sortedHistory.length >= 4) {
+		const midPoint = Math.floor(sortedHistory.length / 2)
+		const firstHalf = sortedHistory.slice(0, midPoint)
+		const secondHalf = sortedHistory.slice(midPoint)
+		
+		const firstHalfVelocity = (firstHalf[firstHalf.length - 1].amount - firstHalf[0].amount) /
+			Math.max(1, (firstHalf[firstHalf.length - 1].date.getTime() - firstHalf[0].date.getTime()) / (24 * 60 * 60 * 1000))
+		
+		const secondHalfVelocity = (secondHalf[secondHalf.length - 1].amount - secondHalf[0].amount) /
+			Math.max(1, (secondHalf[secondHalf.length - 1].date.getTime() - secondHalf[0].date.getTime()) / (24 * 60 * 60 * 1000))
+		
+		if (secondHalfVelocity > firstHalfVelocity * 1.1) {
+			trend = 'accelerating'
+		} else if (secondHalfVelocity < firstHalfVelocity * 0.9) {
+			trend = 'decelerating'
+		}
+	}
+	
+	// Calculate confidence based on data points and consistency
+	const confidence = Math.min(100, (sortedHistory.length / 12) * 100) // More data points = higher confidence
+	
+	return {
+		dailyVelocity,
+		weeklyVelocity,
+		monthlyVelocity,
+		trend,
+		confidence
+	}
+}
+
+/**
  * Format progress percentage for display
  */
 export function formatProgressPercentage(percentage: number): string {

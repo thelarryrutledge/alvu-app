@@ -12,6 +12,8 @@
 	import GoalAchievementNotifier from '$lib/components/GoalAchievementNotifier.svelte'
 	import GoalModificationModal from '$lib/components/GoalModificationModal.svelte'
 	import GoalHistoryViewer from '$lib/components/GoalHistoryViewer.svelte'
+	import GoalProjectionViewer from '$lib/components/GoalProjectionViewer.svelte'
+	import WhatIfCalculator from '$lib/components/WhatIfCalculator.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -35,6 +37,10 @@
 	let modifyingGoalEnvelope: Envelope | null = null
 	let showGoalHistoryModal = false
 	let viewingHistoryEnvelope: Envelope | null = null
+	let showProjectionModal = false
+	let projectionEnvelope: Envelope | null = null
+	let showWhatIfModal = false
+	let whatIfEnvelope: Envelope | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -340,6 +346,36 @@
 	function handleGoalHistoryClose() {
 		showGoalHistoryModal = false
 		viewingHistoryEnvelope = null
+	}
+	
+	// Handlers for goal projection modal
+	function handleViewProjections(envelope: Envelope) {
+		if (envelope.type !== 'savings' || !envelope.target_amount) {
+			toastHelpers.warning('Only savings envelopes with target amounts have projections.')
+			return
+		}
+		projectionEnvelope = envelope
+		showProjectionModal = true
+	}
+	
+	function handleProjectionClose() {
+		showProjectionModal = false
+		projectionEnvelope = null
+	}
+	
+	// Handlers for what-if calculator modal
+	function handleViewWhatIf(envelope: Envelope) {
+		if (envelope.type !== 'savings' || !envelope.target_amount) {
+			toastHelpers.warning('Only savings envelopes with target amounts can use the what-if calculator.')
+			return
+		}
+		whatIfEnvelope = envelope
+		showWhatIfModal = true
+	}
+	
+	function handleWhatIfClose() {
+		showWhatIfModal = false
+		whatIfEnvelope = null
 	}
 	
 	// Load data on mount and when user changes
@@ -807,12 +843,30 @@
 																<!-- Goal Actions (only for savings envelopes with targets) -->
 																{#if envelope.type === 'savings' && envelope.target_amount}
 																	<button
+																		on:click={() => handleViewProjections(envelope)}
+																		class="inline-flex items-center p-2 border border-purple-300 rounded-md shadow-sm text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+																		title="View goal projections"
+																	>
+																		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+																		</svg>
+																	</button>
+																	<button
+																		on:click={() => handleViewWhatIf(envelope)}
+																		class="inline-flex items-center p-2 border border-indigo-300 rounded-md shadow-sm text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+																		title="What-if calculator"
+																	>
+																		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+																		</svg>
+																	</button>
+																	<button
 																		on:click={() => handleViewGoalHistory(envelope)}
 																		class="inline-flex items-center p-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
 																		title="View goal history"
 																	>
 																		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 																		</svg>
 																	</button>
 																	<button
@@ -954,6 +1008,45 @@
 					envelope={viewingHistoryEnvelope}
 					userId={$user.id}
 					bind:open={showGoalHistoryModal}
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Goal Projection Modal -->
+		{#if projectionEnvelope}
+			<Modal
+				bind:open={showProjectionModal}
+				size="xl"
+				variant="default"
+				title="Goal Projections - {projectionEnvelope.name}"
+				showCloseButton={true}
+				closeOnBackdrop={true}
+				closeOnEscape={true}
+				on:close={handleProjectionClose}
+			>
+				<GoalProjectionViewer
+					envelope={projectionEnvelope}
+					showTitle={false}
+					variant="detailed"
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- What-If Calculator Modal -->
+		{#if whatIfEnvelope}
+			<Modal
+				bind:open={showWhatIfModal}
+				size="lg"
+				variant="default"
+				title="What-If Calculator - {whatIfEnvelope.name}"
+				showCloseButton={true}
+				closeOnBackdrop={true}
+				closeOnEscape={true}
+				on:close={handleWhatIfClose}
+			>
+				<WhatIfCalculator
+					envelope={whatIfEnvelope}
+					showTitle={false}
 				/>
 			</Modal>
 		{/if}
