@@ -7,6 +7,8 @@
 	import PageLoading from '$lib/components/PageLoading.svelte'
 	import Modal from '$lib/components/Modal.svelte'
 	import AddTransactionForm from '$lib/components/AddTransactionForm.svelte'
+	import GoalAchievementNotifier from '$lib/components/GoalAchievementNotifier.svelte'
+	import AchievementGallery from '$lib/components/AchievementGallery.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -1000,6 +1002,25 @@
 					</section>
 				{/if}
 
+				<!-- Achievement Gallery Section -->
+				{#if envelopes.some(env => env.type === 'savings' && env.target_amount && env.target_amount > 0)}
+					<section class="achievement-gallery-section">
+						<div class="mb-6">
+							<h2 class="text-xl font-semibold text-gray-900">Achievements</h2>
+							<p class="text-sm text-gray-600">Celebrate your savings milestones and completed goals</p>
+						</div>
+						
+						<div class="bg-white rounded-lg shadow p-6">
+							<AchievementGallery
+								{envelopes}
+								showTitle={false}
+								maxDisplay={8}
+								size="md"
+							/>
+						</div>
+					</section>
+				{/if}
+
 				<!-- Financial Overview Section -->
 				<section class="financial-overview">
 					<div class="mb-6">
@@ -1639,6 +1660,9 @@
 			{/if}
 		</div>
 		{/if}
+		
+		<!-- Goal Achievement Notifier -->
+		<GoalAchievementNotifier {envelopes} enabled={true} />
 		
 		<!-- Transaction Modal -->
 		{#if showTransactionModal}

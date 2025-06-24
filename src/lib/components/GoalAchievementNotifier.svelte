@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte'
 	import { calculateSavingsGoalProgress } from '$lib/utils/savingsGoalCalculations'
-	import { checkGoalAchievements, displayNotifications, defaultNotificationPreferences } from '$lib/utils/goalNotifications'
+	import { checkGoalAchievements, displayNotifications, displayCelebration, defaultNotificationPreferences } from '$lib/utils/goalNotifications'
 	import { trackMilestoneAchievement, trackGoalCompletion } from '$lib/utils/goalHistoryTracking'
 	import { user } from '$lib/stores/auth'
+	import MilestoneCelebration from './MilestoneCelebration.svelte'
 	import type { Envelope } from '$lib/types/database'
 	import type { SavingsGoalProgress } from '$lib/utils/savingsGoalCalculations'
 	import type { GoalNotification, NotificationPreferences } from '$lib/utils/goalNotifications'
@@ -17,6 +18,11 @@
 	let previousProgressMap = new Map<string, SavingsGoalProgress>()
 	let isInitialized = false
 	let notificationQueue: GoalNotification[] = []
+	
+	// Celebration state
+	let showCelebration = false
+	let currentCelebrationNotification: GoalNotification | null = null
+	let currentCelebrationGoal: { currentAmount: number; targetAmount: number; goalName: string } | null = null
 	
 	// Reactive statement to check for goal achievements when envelopes change
 	$: if (enabled && isInitialized && envelopes.length > 0) {
@@ -91,11 +97,26 @@
 			}
 		}
 		
-		// Add to queue
-		notificationQueue.push(...notifications)
+		// Separate celebration notifications from regular notifications
+		const celebrationNotifications = notifications.filter(n =>
+			n.type === 'milestone' || n.type === 'achievement'
+		)
+		const regularNotifications = notifications.filter(n =>
+			n.type !== 'milestone' && n.type !== 'achievement'
+		)
 		
-		// Process queue
-		processNotificationQueue()
+		// Add regular notifications to queue
+		notificationQueue.push(...regularNotifications)
+		
+		// Handle celebrations immediately
+		if (celebrationNotifications.length > 0) {
+			processCelebrationQueue(celebrationNotifications, envelopes)
+		}
+		
+		// Process regular notification queue
+		if (regularNotifications.length > 0) {
+			processNotificationQueue()
+		}
 	}
 	
 	/**
@@ -116,6 +137,54 @@
 				processNotificationQueue()
 			}, 5000) // 5 second delay before showing more
 		}
+	}
+	
+	/**
+	 * Process celebration queue with enhanced visual effects
+	 */
+	function processCelebrationQueue(celebrations: GoalNotification[], envelopes: Envelope[]) {
+		if (celebrations.length === 0) return
+		
+		// Show celebrations one at a time
+		const celebration = celebrations[0]
+		const envelope = envelopes.find(e => e.id === celebration.goalId)
+		
+		if (envelope) {
+			// Set up celebration data
+			currentCelebrationNotification = celebration
+			currentCelebrationGoal = {
+				currentAmount: envelope.balance,
+				targetAmount: envelope.target_amount || 0,
+				goalName: envelope.name
+			}
+			
+			// Show celebration modal
+			showCelebration = true
+			
+			// If more celebrations remain, schedule them for later
+			if (celebrations.length > 1) {
+				setTimeout(() => {
+					processCelebrationQueue(celebrations.slice(1), envelopes)
+				}, 3000) // 3 second delay between celebrations
+			}
+		}
+	}
+	
+	/**
+	 * Handle celebration close
+	 */
+	function handleCelebrationClose() {
+		showCelebration = false
+		currentCelebrationNotification = null
+		currentCelebrationGoal = null
+	}
+	
+	/**
+	 * Handle celebration share
+	 */
+	function handleCelebrationShare() {
+		// Handle sharing logic here if needed
+		console.log('Celebration shared!')
 	}
 	
 	/**
@@ -194,6 +263,19 @@
 
 <!-- This component doesn't render any UI - it's purely functional -->
 <!-- It monitors envelope changes and triggers notifications automatically -->
+
+<!-- Celebration Modal -->
+{#if showCelebration && currentCelebrationNotification && currentCelebrationGoal}
+	<MilestoneCelebration
+		notification={currentCelebrationNotification}
+		goalName={currentCelebrationGoal.goalName}
+		currentAmount={currentCelebrationGoal.currentAmount}
+		targetAmount={currentCelebrationGoal.targetAmount}
+		show={showCelebration}
+		on:close={handleCelebrationClose}
+		on:shared={handleCelebrationShare}
+	/>
+{/if}
 
 <style>
 	/* No styles needed - this is a functional component */

@@ -283,11 +283,29 @@ function checkEncouragementOpportunities(
 export function displayNotification(notification: GoalNotification): void {
 	const toastType = getToastType(notification.type)
 	
+	// For milestone and achievement notifications, we'll trigger celebrations
+	// instead of just showing toasts
+	if (notification.type === 'milestone' || notification.type === 'achievement') {
+		// Dispatch custom event for celebration modal
+		const celebrationEvent = new CustomEvent('goal-celebration', {
+			detail: notification
+		})
+		window.dispatchEvent(celebrationEvent)
+		
+		// Also show a brief toast for immediate feedback
+		toastHelpers.success(notification.message, {
+			title: notification.title,
+			duration: 3000
+		})
+		return
+	}
+	
+	// For other notification types, use regular toasts
 	switch (toastType) {
 		case 'success':
 			toastHelpers.success(notification.message, {
 				title: notification.title,
-				duration: notification.type === 'achievement' ? 8000 : 5000
+				duration: 5000
 			})
 			break
 		case 'info':
@@ -309,6 +327,24 @@ export function displayNotification(notification: GoalNotification): void {
 			})
 			break
 	}
+}
+
+/**
+ * Display celebration for milestone/achievement notifications
+ */
+export function displayCelebration(notification: GoalNotification, goalData?: {
+	currentAmount: number
+	targetAmount: number
+	goalName: string
+}): void {
+	// Dispatch custom event for celebration modal
+	const celebrationEvent = new CustomEvent('goal-celebration', {
+		detail: {
+			notification,
+			goalData
+		}
+	})
+	window.dispatchEvent(celebrationEvent)
 }
 
 /**
