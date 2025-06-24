@@ -2,6 +2,8 @@
 	import { onMount, onDestroy } from 'svelte'
 	import { calculateSavingsGoalProgress } from '$lib/utils/savingsGoalCalculations'
 	import { checkGoalAchievements, displayNotifications, defaultNotificationPreferences } from '$lib/utils/goalNotifications'
+	import { trackMilestoneAchievement, trackGoalCompletion } from '$lib/utils/goalHistoryTracking'
+	import { user } from '$lib/stores/auth'
 	import type { Envelope } from '$lib/types/database'
 	import type { SavingsGoalProgress } from '$lib/utils/savingsGoalCalculations'
 	import type { GoalNotification, NotificationPreferences } from '$lib/utils/goalNotifications'
@@ -66,14 +68,29 @@
 		
 		// Display notifications if any
 		if (allNotifications.length > 0) {
-			queueNotifications(allNotifications)
+			queueNotifications(allNotifications, savingsEnvelopes)
 		}
 	}
 	
 	/**
 	 * Queue notifications for display
 	 */
-	function queueNotifications(notifications: GoalNotification[]) {
+	async function queueNotifications(notifications: GoalNotification[], envelopes: Envelope[]) {
+		// Track milestone and completion achievements in history
+		const currentUser = $user
+		if (currentUser) {
+			for (const notification of notifications) {
+				const envelope = envelopes.find(e => e.id === notification.goalId)
+				if (envelope) {
+					if (notification.type === 'milestone' && notification.milestonePercentage) {
+						await trackMilestoneAchievement(currentUser.id, envelope, notification.milestonePercentage)
+					} else if (notification.type === 'achievement') {
+						await trackGoalCompletion(currentUser.id, envelope)
+					}
+				}
+			}
+		}
+		
 		// Add to queue
 		notificationQueue.push(...notifications)
 		

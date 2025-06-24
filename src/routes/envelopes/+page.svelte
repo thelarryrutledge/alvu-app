@@ -10,6 +10,8 @@
 	import DeleteEnvelopeModal from '$lib/components/DeleteEnvelopeModal.svelte'
 	import SavingsProgressBar from '$lib/components/SavingsProgressBar.svelte'
 	import GoalAchievementNotifier from '$lib/components/GoalAchievementNotifier.svelte'
+	import GoalModificationModal from '$lib/components/GoalModificationModal.svelte'
+	import GoalHistoryViewer from '$lib/components/GoalHistoryViewer.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -29,6 +31,10 @@
 	let editingEnvelope: Envelope | null = null
 	let showDeleteModal = false
 	let deletingEnvelope: Envelope | null = null
+	let showGoalModificationModal = false
+	let modifyingGoalEnvelope: Envelope | null = null
+	let showGoalHistoryModal = false
+	let viewingHistoryEnvelope: Envelope | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -296,6 +302,44 @@
 	function handleDeleteCancel() {
 		showDeleteModal = false
 		deletingEnvelope = null
+	}
+	
+	// Handlers for goal modification modal
+	function handleModifyGoal(envelope: Envelope) {
+		if (envelope.type !== 'savings' || !envelope.target_amount) {
+			toastHelpers.warning('Only savings envelopes with target amounts can have their goals modified.')
+			return
+		}
+		modifyingGoalEnvelope = envelope
+		showGoalModificationModal = true
+	}
+	
+	function handleGoalModificationSuccess(event: CustomEvent<{ envelope: Envelope; changes: any }>) {
+		showGoalModificationModal = false
+		modifyingGoalEnvelope = null
+		// Refresh the envelopes list to show updated data
+		loadEnvelopesData()
+		// The GoalAchievementNotifier will automatically detect changes and show notifications
+	}
+	
+	function handleGoalModificationCancel() {
+		showGoalModificationModal = false
+		modifyingGoalEnvelope = null
+	}
+	
+	// Handlers for goal history modal
+	function handleViewGoalHistory(envelope: Envelope) {
+		if (envelope.type !== 'savings' || !envelope.target_amount) {
+			toastHelpers.warning('Only savings envelopes with target amounts have goal history.')
+			return
+		}
+		viewingHistoryEnvelope = envelope
+		showGoalHistoryModal = true
+	}
+	
+	function handleGoalHistoryClose() {
+		showGoalHistoryModal = false
+		viewingHistoryEnvelope = null
 	}
 	
 	// Load data on mount and when user changes
@@ -760,6 +804,27 @@
 															
 															<!-- Actions -->
 															<div class="flex items-center space-x-2">
+																<!-- Goal Actions (only for savings envelopes with targets) -->
+																{#if envelope.type === 'savings' && envelope.target_amount}
+																	<button
+																		on:click={() => handleViewGoalHistory(envelope)}
+																		class="inline-flex items-center p-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+																		title="View goal history"
+																	>
+																		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+																		</svg>
+																	</button>
+																	<button
+																		on:click={() => handleModifyGoal(envelope)}
+																		class="inline-flex items-center p-2 border border-green-300 rounded-md shadow-sm text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+																		title="Modify savings goal"
+																	>
+																		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+																		</svg>
+																	</button>
+																{/if}
 																<button
 																	on:click={() => handleEditEnvelope(envelope)}
 																	class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -861,6 +926,34 @@
 					envelope={deletingEnvelope}
 					on:success={handleDeleteSuccess}
 					on:cancel={handleDeleteCancel}
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Goal Modification Modal -->
+		<GoalModificationModal
+			bind:open={showGoalModificationModal}
+			envelope={modifyingGoalEnvelope}
+			on:success={handleGoalModificationSuccess}
+			on:cancel={handleGoalModificationCancel}
+		/>
+		
+		<!-- Goal History Modal -->
+		{#if viewingHistoryEnvelope && $user}
+			<Modal
+				bind:open={showGoalHistoryModal}
+				size="xl"
+				variant="default"
+				title="Goal History"
+				showCloseButton={true}
+				closeOnBackdrop={true}
+				closeOnEscape={true}
+				on:close={handleGoalHistoryClose}
+			>
+				<GoalHistoryViewer
+					envelope={viewingHistoryEnvelope}
+					userId={$user.id}
+					bind:open={showGoalHistoryModal}
 				/>
 			</Modal>
 		{/if}
