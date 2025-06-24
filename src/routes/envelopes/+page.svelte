@@ -9,11 +9,14 @@
 	import EditEnvelopeForm from '$lib/components/EditEnvelopeForm.svelte'
 	import DeleteEnvelopeModal from '$lib/components/DeleteEnvelopeModal.svelte'
 	import SavingsProgressBar from '$lib/components/SavingsProgressBar.svelte'
+	import DebtProgressBar from '$lib/components/DebtProgressBar.svelte'
 	import GoalAchievementNotifier from '$lib/components/GoalAchievementNotifier.svelte'
 	import GoalModificationModal from '$lib/components/GoalModificationModal.svelte'
 	import GoalHistoryViewer from '$lib/components/GoalHistoryViewer.svelte'
 	import GoalProjectionViewer from '$lib/components/GoalProjectionViewer.svelte'
 	import WhatIfCalculator from '$lib/components/WhatIfCalculator.svelte'
+	import DebtManagementViewer from '$lib/components/DebtManagementViewer.svelte'
+	import DebtPaymentScheduler from '$lib/components/DebtPaymentScheduler.svelte'
 	import { user } from '$lib/stores/auth'
 	import { supabase } from '$lib/utils/supabase'
 	import { toastHelpers } from '$lib/stores/toast'
@@ -41,6 +44,10 @@
 	let projectionEnvelope: Envelope | null = null
 	let showWhatIfModal = false
 	let whatIfEnvelope: Envelope | null = null
+	let showDebtManagementModal = false
+	let debtManagementEnvelope: Envelope | null = null
+	let showDebtSchedulerModal = false
+	let debtSchedulerEnvelope: Envelope | null = null
 	
 	// Filtering and search state
 	let searchQuery = ''
@@ -376,6 +383,43 @@
 	function handleWhatIfClose() {
 		showWhatIfModal = false
 		whatIfEnvelope = null
+	}
+	
+	// Handlers for debt management modal
+	function handleViewDebtManagement(envelope: Envelope) {
+		if (envelope.type !== 'debt') {
+			toastHelpers.warning('Only debt envelopes can use debt management features.')
+			return
+		}
+		debtManagementEnvelope = envelope
+		showDebtManagementModal = true
+	}
+	
+	function handleDebtManagementClose() {
+		showDebtManagementModal = false
+		debtManagementEnvelope = null
+	}
+	
+	// Handlers for debt payment scheduler modal
+	function handleScheduleDebtPayments(envelope: Envelope) {
+		if (envelope.type !== 'debt') {
+			toastHelpers.warning('Only debt envelopes can schedule payments.')
+			return
+		}
+		debtSchedulerEnvelope = envelope
+		showDebtSchedulerModal = true
+	}
+	
+	function handleDebtSchedulerClose() {
+		showDebtSchedulerModal = false
+		debtSchedulerEnvelope = null
+	}
+	
+	function handleDebtSchedulerSuccess(event: CustomEvent<{ envelope: Envelope; paymentAmount: number; frequency: string }>) {
+		showDebtSchedulerModal = false
+		debtSchedulerEnvelope = null
+		// Here you would typically save the payment schedule to the database
+		toastHelpers.success(`Payment schedule created for ${event.detail.envelope.name}`)
 	}
 	
 	// Load data on mount and when user changes
@@ -823,18 +867,16 @@
 																</div>
 															{/if}
 															
-															<!-- Progress Bar for Debt (shows amount owed) -->
-															{#if envelope.type === 'debt' && envelope.balance < 0}
-																<div class="flex items-center space-x-2">
-																	<div class="w-24 bg-red-200 rounded-full h-2">
-																		<div
-																			class="bg-red-600 h-2 rounded-full transition-all duration-300"
-																			style="width: 100%"
-																		></div>
-																	</div>
-																	<span class="text-xs text-gray-600 w-10 text-right">
-																		Owed
-																	</span>
+															<!-- Progress Bar for Debt -->
+															{#if envelope.type === 'debt'}
+																<div class="w-32">
+																	<DebtProgressBar
+																		{envelope}
+																		transactions={[]}
+																		variant="minimal"
+																		size="sm"
+																		showDetails={false}
+																	/>
 																</div>
 															{/if}
 															
@@ -879,6 +921,31 @@
 																		</svg>
 																	</button>
 																{/if}
+																
+																<!-- Debt Actions (only for debt envelopes) -->
+																{#if envelope.type === 'debt'}
+																	<button
+																		on:click={() => handleViewDebtManagement(envelope)}
+																		class="inline-flex items-center p-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+																		title="Debt management"
+																	>
+																		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+																		</svg>
+																	</button>
+																	{#if envelope.minimum_payment && envelope.apr}
+																		<button
+																			on:click={() => handleScheduleDebtPayments(envelope)}
+																			class="inline-flex items-center p-2 border border-orange-300 rounded-md shadow-sm text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+																			title="Schedule payments"
+																		>
+																			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+																			</svg>
+																		</button>
+																	{/if}
+																{/if}
+																
 																<button
 																	on:click={() => handleEditEnvelope(envelope)}
 																	class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -1047,6 +1114,48 @@
 				<WhatIfCalculator
 					envelope={whatIfEnvelope}
 					showTitle={false}
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Debt Management Modal -->
+		{#if debtManagementEnvelope}
+			<Modal
+				bind:open={showDebtManagementModal}
+				size="xl"
+				variant="default"
+				title="Debt Management - {debtManagementEnvelope.name}"
+				showCloseButton={true}
+				closeOnBackdrop={true}
+				closeOnEscape={true}
+				on:close={handleDebtManagementClose}
+			>
+				<DebtManagementViewer
+					envelope={debtManagementEnvelope}
+					transactions={[]}
+					showTitle={false}
+					variant="detailed"
+				/>
+			</Modal>
+		{/if}
+		
+		<!-- Debt Payment Scheduler Modal -->
+		{#if debtSchedulerEnvelope}
+			<Modal
+				bind:open={showDebtSchedulerModal}
+				size="lg"
+				variant="default"
+				title="Payment Scheduler - {debtSchedulerEnvelope.name}"
+				showCloseButton={true}
+				closeOnBackdrop={true}
+				closeOnEscape={true}
+				on:close={handleDebtSchedulerClose}
+			>
+				<DebtPaymentScheduler
+					envelope={debtSchedulerEnvelope}
+					showTitle={false}
+					on:schedule={handleDebtSchedulerSuccess}
+					on:close={handleDebtSchedulerClose}
 				/>
 			</Modal>
 		{/if}
